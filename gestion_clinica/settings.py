@@ -58,7 +58,7 @@ ROOT_URLCONF = 'gestion_clinica.urls'
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],  # 👉 carpeta global
+        "DIRS": [BASE_DIR / 'templates'],  # 👉 carpeta global
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [

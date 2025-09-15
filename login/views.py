@@ -1,13 +1,27 @@
 from django.shortcuts import render, redirect
+from django.contrib import messages
 
 def login_view(request):
-    error = None
-    if request.method == "POST":
-        usuario = request.POST.get("usuario")
-        clave = request.POST.get("clave")
-        if usuario == "inacap" and clave == "clinica2025":
-            request.session["autenticado"] = True
-            return redirect("/recepcion/registrar/")
+    """Vista de login según especificaciones de la evaluación"""
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '').strip()
+        
+        # Validar credenciales según evaluación
+        if username == 'inacap' and password == 'clinica2025':
+            # Autenticación exitosa
+            request.session['autenticado'] = True
+            request.session['usuario'] = username
+            
+            messages.success(request, f'¡Bienvenido {username}!')
+            return redirect('recepcion:registrar') # ← Según evaluación
         else:
-            error = "Usuario o clave incorrectos"
-    return render(request, "login/login.html", {"error": error})
+            messages.error(request, 'Usuario o contraseña incorrectos')
+    
+    return render(request, 'login/login.html')
+
+def logout_view(request):
+    """Vista para cerrar sesión"""
+    request.session.flush()
+    messages.info(request, 'Has cerrado sesión correctamente')
+    return redirect('login:login')
