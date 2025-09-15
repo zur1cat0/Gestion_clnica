@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Diagnósticos realizados</h2>
+<table class="table table-striped mt-3">
+  <thead>
+    <tr><th>Estudiante</th><th>Equipo</th><th>Diagnóstico</th><th>Solución</th><th>Tipo</th></tr>
+  </thead>
+  <tbody>
+  {% for d in diagnosticos %}
+    <tr>
+      <td>{{ d.estudiante }}</td>
+      <td>{{ d.equipo }}</td>
+      <td>{{ d.diagnostico }}</td>
+      <td>{{ d.solucion }}</td>
+      <td>{{ d.tipo }}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="5">No hay diagnósticos registrados.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
