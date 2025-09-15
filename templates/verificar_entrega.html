@@ -1,19 +1,15 @@
 {% extends 'base.html' %}
 {% block content %}
 <h2>Verificar equipo</h2>
-<form method="get" class="mt-3">
-  <div class="mb-3">
-    <input type="text" name="cliente" placeholder="Nombre cliente" class="form-control" required>
-  </div>
-  <button type="submit" class="btn btn-info">Buscar</button>
+<form method="get">
+  <input type="text" name="cliente" placeholder="Nombre cliente" required><br>
+  <button type="submit">Buscar</button>
 </form>
 
 {% if equipo %}
-  <div class="mt-4 alert alert-success">
-    <h4>Equipo encontrado</h4>
-    <p><strong>Cliente:</strong> {{ equipo.cliente }}</p>
-    <p><strong>Estado:</strong> {{ equipo.estado }}</p>
-    <p><strong>Observaciones:</strong> {{ equipo.obs }}</p>
-  </div>
+  <h3>Equipo encontrado</h3>
+  <p>Cliente: {{ equipo.cliente }}</p>
+  <p>Estado: {{ equipo.estado }}</p>
+  <p>Observaciones: {{ equipo.obs }}</p>
 {% endif %}
 {% endblock %}

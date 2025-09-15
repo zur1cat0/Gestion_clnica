@@ -1,17 +1,11 @@
 {% extends 'base.html' %}
 {% block content %}
 <h2>Registrar equipo</h2>
-<form method="post" class="mt-3">
+<form method="post">
   {% csrf_token %}
-  <div class="mb-3">
-    <input type="text" name="cliente" placeholder="Nombre cliente" class="form-control" required>
-  </div>
-  <div class="mb-3">
-    <input type="text" name="equipo" placeholder="Tipo de equipo" class="form-control" required>
-  </div>
-  <div class="mb-3">
-    <textarea name="problema" placeholder="Problema informado" class="form-control"></textarea>
-  </div>
-  <button type="submit" class="btn btn-success">Guardar</button>
+  <input type="text" name="cliente" placeholder="Nombre cliente" required><br>
+  <input type="text" name="equipo" placeholder="Tipo de equipo" required><br>
+  <textarea name="problema" placeholder="Problema informado"></textarea><br>
+  <button type="submit">Guardar</button>
 </form>
 {% endblock %}

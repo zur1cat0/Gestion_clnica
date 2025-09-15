@@ -1,11 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <h2>Detalle del equipo</h2>
-{% if equipo %}
-  <p><strong>Cliente:</strong> {{ equipo.cliente }}</p>
-  <p><strong>Equipo:</strong> {{ equipo.equipo }}</p>
-  <p><strong>Problema:</strong> {{ equipo.problema }}</p>
-{% else %}
-  <div class="alert alert-warning">Equipo no encontrado.</div>
-{% endif %}
+<p>Cliente: {{ equipo.cliente }}</p>
+<p>Equipo: {{ equipo.equipo }}</p>
+<p>Problema: {{ equipo.problema }}</p>
 {% endblock %}

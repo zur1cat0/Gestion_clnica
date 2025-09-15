@@ -2,14 +2,10 @@
 {% block content %}
 <h2>Comprobante de entrega</h2>
 {% if reporte %}
-  <div class="card mt-3">
-    <div class="card-body">
-      <p><strong>Cliente:</strong> {{ reporte.cliente }}</p>
-      <p><strong>Estado:</strong> {{ reporte.estado }}</p>
-      <p><strong>Observaciones:</strong> {{ reporte.obs }}</p>
-    </div>
-  </div>
+  <p>Cliente: {{ reporte.cliente }}</p>
+  <p>Estado: {{ reporte.estado }}</p>
+  <p>Observaciones: {{ reporte.obs }}</p>
 {% else %}
-  <div class="alert alert-warning mt-3">No hay reportes registrados.</div>
+  <p>No hay reportes registrados.</p>
 {% endif %}
 {% endblock %}
