@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Equipo - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-plus-circle text-primary"></i> Registrar Nuevo Equipo</h2>
+            <a href="/recepcion/listado/" class="btn btn-outline-primary">
+                <i class="bi bi-list"></i> Ver Listado
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-clipboard-plus"></i> Datos del Cliente y Equipo
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="nombre_cliente" class="form-label">
+                            <i class="bi bi-person"></i> Nombre del Cliente
+                        </label>
+                        <input type="text" class="form-control" id="nombre_cliente" 
+                               name="nombre_cliente" placeholder="Ingrese nombre completo" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="tipo_equipo" class="form-label">
+                            <i class="bi bi-pc-display"></i> Tipo de Equipo
+                        </label>
+                        <select class="form-select" id="tipo_equipo" name="tipo_equipo" required>
+                            <option value="">Seleccione tipo de equipo</option>
+                            <option value="Computador Escritorio">Computador de Escritorio</option>
+                            <option value="Laptop">Laptop</option>
+                            <option value="Impresora">Impresora</option>
+                            <option value="Monitor">Monitor</option>
+                            <option value="Tablet">Tablet</option>
+                            <option value="Smartphone">Smartphone</option>
+                            <option value="Router">Router</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="problema" class="form-label">
+                            <i class="bi bi-exclamation-triangle"></i> Problema Reportado
+                        </label>
+                        <textarea class="form-control" id="problema" name="problema" 
+                                  rows="4" placeholder="Describa detalladamente el problema..." required></textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="reset" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Limpiar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Registrar Equipo
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 col-lg-6">
+        <div class="card bg-light">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i> Información
+                </h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Proceso de Recepción:</strong></p>
+                <ol class="small">
+                    <li>Complete todos los campos obligatorios</li>
+                    <li>Verifique los datos antes de enviar</li>
+                    <li>El equipo será asignado automáticamente</li>
+                    <li>Se generará un número de seguimiento</li>
+                </ol>
+                
+                <hr>
+                
+                <p><strong>Tipos de problemas comunes:</strong></p>
+                <ul class="small">
+                    <li>No enciende</li>
+                    <li>Lentitud del sistema</li>
+                    <li>Problemas de conectividad</li>
+                    <li>Errores de software</li>
+                    <li>Problemas de hardware</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -2,26 +2,28 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 
 def login_view(request):
-    """Vista de login según especificaciones de la evaluación"""
     if request.method == 'POST':
-        username = request.POST.get('username', '').strip()
-        password = request.POST.get('password', '').strip()
+        username = request.POST.get('username')
+        password = request.POST.get('password')
         
-        # Validar credenciales según evaluación
+        # Validación según los requisitos
         if username == 'inacap' and password == 'clinica2025':
-            # Autenticación exitosa
             request.session['autenticado'] = True
             request.session['usuario'] = username
-            
-            messages.success(request, f'¡Bienvenido {username}!')
-            return redirect('recepcion:registrar') # ← Según evaluación
+            return redirect('/recepcion/registrar/')
         else:
-            messages.error(request, 'Usuario o contraseña incorrectos')
+            messages.error(request, 'Credenciales incorrectas. Use usuario: inacap, clave: clinica2025')
     
     return render(request, 'login/login.html')
 
 def logout_view(request):
-    """Vista para cerrar sesión"""
     request.session.flush()
-    messages.info(request, 'Has cerrado sesión correctamente')
-    return redirect('login:login')
+    return redirect('/login/')
+
+
+def login_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        if not request.session.get('autenticado', False):
+            return redirect('/login/')
+        return view_func(request, *args, **kwargs)
+    return wrapper
