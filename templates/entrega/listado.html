@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}Listado de entregas – Entrega{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Listado de Entregas</h2>
+  <div>
+    <a href="{% url 'verificar_entrega' %}" class="btn btn-primary btn-sm me-2">
+      Registrar nueva entrega
+    </a>
+    <a href="{% url 'reporte_entregas' %}" class="btn btn-outline-secondary btn-sm">
+      Ver reporte
+    </a>
+  </div>
+</div>
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}" role="alert">
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endif %}
+
+<div class="table-responsive">
+  <table class="table table-striped table-hover">
+    <thead class="table-light">
+      <tr>
+        <th>Cliente</th>
+        <th>Equipo</th>
+        <th>Problema inicial</th>
+        <th>Diagnóstico</th>
+        <th>Solución</th>
+        <th>Técnico</th>
+        <th>Monto ($)</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if entregas %}
+        {% for e in entregas %}
+          <tr>
+            <td>{{ e.diagnostico.equipo.nombre }}</td>
+            <td>{{ e.diagnostico.equipo.tipo }}</td>
+            <td>{{ e.diagnostico.equipo.problema }}</td>
+            <td>{{ e.diagnostico.diagnostico }}</td>
+            <td>{{ e.diagnostico.solucion }}</td>
+            <td>{{ e.diagnostico.estudiante }}</td>
+            <td>{{ e.monto|floatformat:0 }}</td>
+            <td>
+              {% if e.entregado %}
+                <span class="badge bg-success">Entregado</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">Pendiente</span>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{% url 'comprobante_entrega' e.id %}" class="btn btn-sm btn-outline-info mb-1">
+                Comprobante
+              </a>
+              {% if not e.entregado %}
+                <a href="{% url 'confirmar_entrega' e.id %}" class="btn btn-sm btn-outline-success">
+                  Confirmar entrega
+                </a>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="9" class="text-center">Aún no hay entregas registradas.</td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

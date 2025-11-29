@@ -1,16 +1,85 @@
 {% extends 'base.html' %}
+{% block title %}Listado de diagnósticos – Diagnóstico{% endblock %}
+
 {% block content %}
-<h2>Diagnósticos realizados</h2>
-<table border="1">
-  <tr><th>Estudiante</th><th>Equipo</th><th>Diagnóstico</th><th>Solución</th><th>Tipo</th></tr>
-  {% for d in diagnosticos %}
-    <tr>
-      <td>{{ d.estudiante }}</td>
-      <td>{{ d.equipo }}</td>
-      <td>{{ d.diagnostico }}</td>
-      <td>{{ d.solucion }}</td>
-      <td>{{ d.tipo }}</td>
-    </tr>
-  {% endfor %}
-</table>
+<h2 class="mb-4">Seguimiento de equipos y diagnósticos</h2>
+
+<div class="d-flex justify-content-end mb-3">
+    <a href="{% url 'asignar_equipo' %}" class="btn btn-primary me-2">
+        Asignar equipo
+    </a>
+    <a href="{% url 'evaluar_equipo' %}" class="btn btn-outline-primary">
+        Evaluar equipo
+    </a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Cliente</th>
+                    <th>Equipo</th>
+                    <th>Problema inicial</th>
+                    <th>Estudiante</th>
+                    <th>Último diagnóstico</th>
+                    <th class="text-center">Estado</th>
+                    <th>Fecha recepción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fila in filas %}
+                <tr>
+                    <!-- Datos del equipo -->
+                    <td>{{ fila.equipo.cliente }}</td>
+                    <td>{{ fila.equipo.tipo }}</td>
+                    <td>{{ fila.equipo.problema }}</td>
+
+                    <!-- Estudiante -->
+                    <td>
+                        {% if fila.estudiante == "No asignado" %}
+                            <span class="text-muted fst-italic">No asignado</span>
+                        {% else %}
+                            {{ fila.estudiante }}
+                        {% endif %}
+                    </td>
+
+                    <!-- Último diagnóstico -->
+                    <td>
+                        {% if fila.ultimo_diagnostico == "Sin diagnóstico" %}
+                            <span class="text-muted fst-italic">Sin diagnóstico</span>
+                        {% else %}
+                            {{ fila.ultimo_diagnostico }}
+                        {% endif %}
+                    </td>
+
+                    <!-- Estado con colores -->
+                    <td class="text-center">
+                        {% if fila.estado_equipo == "Pendiente" %}
+                            <span class="badge rounded-pill bg-danger">Pendiente</span>
+                        {% elif fila.estado_equipo == "Asignado" %}
+                            <span class="badge rounded-pill bg-warning text-dark">Asignado</span>
+                        {% elif fila.estado_equipo == "Para entrega" %}
+                            <span class="badge rounded-pill bg-success">Para entrega</span>
+                        {% elif fila.estado_equipo == "Entregado" %}
+                            <span class="badge rounded-pill bg-secondary">Entregado</span>
+                        {% else %}
+                            <span class="badge rounded-pill bg-light text-muted">Sin información</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Fecha recepción -->
+                    <td>{{ fila.equipo.fecha_recepcion }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        No hay equipos recepcionados.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}

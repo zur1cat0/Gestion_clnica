@@ -2,71 +2,100 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Sistema de Gestión Clínica PC{% endblock %}</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
+    <title>{% block title %}Gestión Clínica de PCs{% endblock %}</title>
+
+    <!-- Bootstrap 5 -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <style>
+        body {
+            background-color: #f5f7fb;
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            letter-spacing: 0.03em;
+        }
+
+        .app-shell {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        main.container {
+            flex: 1;
+        }
+
+        footer {
+            font-size: 0.85rem;
+        }
+    </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="#">
-                <i class="bi bi-pc-display"></i> Clínica PC INACAP
-            </a>
-            
-            {% if request.session.autenticado %}
-            <div class="navbar-nav ms-auto">
-                <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                        <i class="bi bi-person"></i> {{ request.session.usuario }}
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="/recepcion/registrar/"><i class="bi bi-plus-circle"></i> Registrar Equipo</a></li>
-                        <li><a class="dropdown-item" href="/recepcion/listado/"><i class="bi bi-list"></i> Listado Equipos</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="/diagnostico/asignar/"><i class="bi bi-person-check"></i> Asignar Técnico</a></li>
-                        <li><a class="dropdown-item" href="/diagnostico/evaluar/"><i class="bi bi-tools"></i> Evaluar Equipo</a></li>
-                        <li><a class="dropdown-item" href="/diagnostico/listado/"><i class="bi bi-clipboard-data"></i> Diagnósticos</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="/entrega/verificar/"><i class="bi bi-search"></i> Verificar Entrega</a></li>
-                        <li><a class="dropdown-item" href="/entrega/reporte/"><i class="bi bi-file-text"></i> Reporte Entrega</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="/login/logout/"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
-                    </ul>
-                </div>
+<div class="app-shell">
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">Gestión Clínica</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarNav" aria-controls="navbarNav"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+
+                    {# Si el usuario está autenticado en la sesión #}
+                    {% if request.session.autenticado %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'registrar_equipo' %}">Recepción</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <!-- AHORA el menú Diagnóstico va al LISTADO -->
+                            <a class="nav-link" href="{% url 'listado_diagnosticos' %}">Diagnóstico</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="/entrega/">Entrega</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-danger" href="{% url 'logout' %}">Salir</a>
+                        </li>
+
+                    {# Si NO está autenticado, solo mostramos acceso al login #}
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">Iniciar sesión</a>
+                        </li>
+                    {% endif %}
+
+                </ul>
             </div>
-            {% endif %}
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="container mt-4">
-        <!-- Messages -->
-        {% if messages %}
-        <div class="row">
-            <div class="col-12">
-                {% for message in messages %}
-                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-
+    <!-- CONTENIDO -->
+    <main class="container my-4">
         {% block content %}
         {% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-light mt-5 py-3">
-        <div class="container text-center">
-            <p class="text-muted mb-0">© 2025 Sistema de Gestión Clínica PC - INACAP</p>
+    <!-- FOOTER -->
+    <footer class="bg-light border-top py-2 mt-auto">
+        <div class="container text-center text-muted">
+            Sistema de Gestión Clínica de PCs – Proyecto académico Django
         </div>
     </footer>
+</div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

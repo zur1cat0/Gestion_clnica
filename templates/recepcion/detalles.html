@@ -1,7 +1,40 @@
 {% extends 'base.html' %}
+{% block title %}Detalle de equipo – Recepción{% endblock %}
+
 {% block content %}
-<h2>Detalle del equipo</h2>
-<p>Cliente: {{ equipo.cliente }}</p>
-<p>Equipo: {{ equipo.equipo }}</p>
-<p>Problema: {{ equipo.problema }}</p>
+<h2 class="mb-4">Detalle de Equipo Recepcionado</h2>
+
+<div class="card p-4 shadow-sm border-0">
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Cliente</dt>
+    <dd class="col-sm-9">{{ equipo.nombre }}</dd>
+
+    <dt class="col-sm-3">Tipo de equipo</dt>
+    <dd class="col-sm-9">{{ equipo.tipo }}</dd>
+
+    <dt class="col-sm-3">Problema reportado</dt>
+    <dd class="col-sm-9">{{ equipo.problema }}</dd>
+
+    <dt class="col-sm-3">Teléfono</dt>
+    <dd class="col-sm-9">{{ equipo.telefono|default:"(no registrado)" }}</dd>
+
+    <dt class="col-sm-3">Correo</dt>
+    <dd class="col-sm-9">{{ equipo.correo|default:"(no registrado)" }}</dd>
+
+    <dt class="col-sm-3">Estado</dt>
+    <dd class="col-sm-9">{{ equipo.get_estado_display }}</dd>
+
+    <dt class="col-sm-3">Fecha de recepción</dt>
+    <dd class="col-sm-9">{{ equipo.fecha_recepcion }}</dd>
+  </dl>
+
+  <div class="mt-4 d-flex justify-content-between">
+    <a href="{% url 'listar_equipos' %}" class="btn btn-secondary btn-sm">
+      Volver al listado
+    </a>
+    <a href="{% url 'evaluar_equipo' %}" class="btn btn-primary btn-sm">
+      Ir a diagnóstico
+    </a>
+  </div>
+</div>
 {% endblock %}

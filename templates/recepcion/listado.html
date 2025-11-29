@@ -1,102 +1,40 @@
 {% extends 'base.html' %}
-
-{% block title %}Listado de Equipos - {{ block.super }}{% endblock %}
+{% block title %}Listado de equipos – Recepción{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2><i class="bi bi-list text-primary"></i> Equipos Recibidos</h2>
-            <a href="/recepcion/registrar/" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Nuevo Equipo
+<h2 class="mb-4">Listado de Equipos Recepcionados</h2>
+
+<div class="d-flex justify-content-end mb-3">
+  <a href="{% url 'registrar_equipo' %}" class="btn btn-primary">
+    Registrar nuevo equipo
+  </a>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead class="table-light">
+      <tr>
+        <th>Cliente</th>
+        <th>Equipo</th>
+        <th>Problema</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in equipos %}
+        <tr>
+          <td>{{ e.nombre }}</td>
+          <td>{{ e.tipo }}</td>
+          <td>{{ e.problema }}</td>
+          <td>
+            <a href="{% url 'detalle_equipo' e.id %}"
+               class="btn btn-sm btn-outline-primary">
+              Ver detalle
             </a>
-        </div>
-    </div>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
-
-<div class="row">
-    <div class="col-12">
-        {% if equipos %}
-        <div class="card shadow">
-            <div class="card-header bg-primary text-white">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-table"></i> Lista de Equipos ({{ equipos|length }})
-                </h5>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover mb-0">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>#</th>
-                                <th>Cliente</th>
-                                <th>Tipo de Equipo</th>
-                                <th>Problema</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for equipo in equipos %}
-                            <tr>
-                                <td><strong>{{ equipo.id }}</strong></td>
-                                <td>
-                                    <i class="bi bi-person-fill text-primary"></i>
-                                    {{ equipo.nombre_cliente }}
-                                </td>
-                                <td>
-                                    <i class="bi bi-pc-display text-secondary"></i>
-                                    {{ equipo.tipo_equipo }}
-                                </td>
-                                <td class="text-truncate" style="max-width: 200px;">
-                                    {{ equipo.problema|truncatechars:50 }}
-                                </td>
-                                <td>
-                                    <span class="badge bg-info">
-                                        <i class="bi bi-clock"></i> {{ equipo.estado }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <a href="/recepcion/detalle/{{ equipo.nombre_cliente }}/" 
-                                       class="btn btn-sm btn-outline-primary" title="Ver detalle">
-                                        <i class="bi bi-eye"></i> Ver
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        {% else %}
-        <div class="card">
-            <div class="card-body text-center py-5">
-                <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
-                <h4 class="text-muted mt-3">No hay equipos registrados</h4>
-                <p class="text-muted">Comience registrando el primer equipo en el sistema.</p>
-                <a href="/recepcion/registrar/" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i> Registrar Primer Equipo
-                </a>
-            </div>
-        </div>
-        {% endif %}
-    </div>
-</div>
-
-{% if equipos %}
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card bg-light">
-            <div class="card-body">
-                <h6><i class="bi bi-info-circle"></i> Información</h6>
-                <p class="small mb-0">
-                    Total de equipos recibidos: <strong>{{ equipos|length }}</strong> | 
-                    Haga clic en "Ver" para consultar los detalles completos de cada equipo.
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
 {% endblock %}

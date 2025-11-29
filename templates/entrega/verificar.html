@@ -1,15 +1,46 @@
 {% extends 'base.html' %}
-{% block content %}
-<h2>Verificar equipo</h2>
-<form method="get">
-  <input type="text" name="cliente" placeholder="Nombre cliente" required><br>
-  <button type="submit">Buscar</button>
-</form>
+{% block title %}Registrar entrega – Entrega{% endblock %}
 
-{% if equipo %}
-  <h3>Equipo encontrado</h3>
-  <p>Cliente: {{ equipo.cliente }}</p>
-  <p>Estado: {{ equipo.estado }}</p>
-  <p>Observaciones: {{ equipo.obs }}</p>
+{% block content %}
+<h2 class="mb-4">Registrar entrega de equipo</h2>
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}" role="alert">
+      {{ message }}
+    </div>
+  {% endfor %}
 {% endif %}
+
+<div class="card p-4 shadow-sm border-0">
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="mb-3">
+      <label class="form-label">Diagnóstico pendiente</label>
+      <select name="diagnostico_id" class="form-select">
+        <option value="" selected disabled>Selecciona un diagnóstico</option>
+        {% for d in diagnosticos_pendientes %}
+          <option value="{{ d.id }}">
+            [Diag {{ d.id }}] {{ d.equipo.cliente.nombre }} – {{ d.equipo.get_tipo_display }}
+            ({{ d.get_tipo_solucion_display }}) – Técnico: {{ d.estudiante }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Monto a cobrar ($)</label>
+      <input type="number" name="monto" class="form-control" min="0" step="1000" placeholder="Ej: 25000">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Observaciones</label>
+      <textarea name="observaciones" class="form-control" rows="3"
+                placeholder="Observaciones para el cliente (opcional)"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-success">Registrar entrega</button>
+  </form>
+</div>
 {% endblock %}

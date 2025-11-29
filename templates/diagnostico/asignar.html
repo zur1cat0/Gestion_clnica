@@ -1,9 +1,68 @@
 {% extends 'base.html' %}
+{% block title %}Asignar equipo – Diagnóstico{% endblock %}
+
 {% block content %}
-<h2>Asignar equipo</h2>
-<form method="get">
-  <input type="text" name="estudiante" placeholder="Estudiante" required><br>
-  <input type="text" name="equipo" placeholder="Equipo" required><br>
-  <button type="submit">Asignar</button>
-</form>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Asignar Equipo a Técnico</h2>
+    <a href="{% url 'listado_diagnosticos' %}" class="btn btn-outline-secondary btn-sm">
+        Ver listado de diagnósticos
+    </a>
+</div>
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}" role="alert">
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endif %}
+
+<div class="card p-4 shadow-sm border-0">
+  <form method="post">
+    {% csrf_token %}
+
+    <!-- ESTUDIANTE: SOLO LOS REGISTRADOS EN ADMIN -->
+    <div class="mb-3">
+      <label class="form-label">Estudiante (técnico)</label>
+      <select name="estudiante" class="form-select" required>
+        <option value="" disabled selected>Selecciona un estudiante registrado</option>
+        {% for est in estudiantes %}
+          <option value="{{ est.id }}">{{ est.nombre }}</option>
+        {% endfor %}
+      </select>
+
+      {% if not estudiantes %}
+        <div class="form-text text-warning">
+          No hay estudiantes registrados. Agrégalos en el administrador de Django.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- EQUIPO RECEPCIONADO -->
+    <div class="mb-3">
+      <label class="form-label">Equipo asignado</label>
+      <select name="equipo" class="form-select" required>
+        <option value="" disabled selected>Selecciona un equipo recepcionado</option>
+        {% for e in equipos %}
+          <option value="{{ e.id }}">
+            {{ e.nombre }} – {{ e.tipo }} ({{ e.problema }})
+          </option>
+        {% endfor %}
+      </select>
+
+      {% if not equipos %}
+        <div class="form-text text-warning">
+          No hay equipos recepcionados. Primero registra equipos en la sección
+          <strong>Recepción</strong>.
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="d-flex justify-content-end">
+      <button type="submit" class="btn btn-primary">
+        Asignar
+      </button>
+    </div>
+  </form>
+</div>
 {% endblock %}
