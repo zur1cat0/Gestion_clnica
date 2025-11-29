@@ -1,49 +1,82 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from login.views import login_required
 
-# Simulación de base de datos con lista de diccionarios
-equipos_recibidos = []
+from .models import Equipo
 
-@login_required  
+
+def _requerir_login(request):
+    if not request.session.get("autenticado"):
+        return redirect("login")
+    return None
+
+
 def registrar_equipo(request):
-    if request.method == 'POST':
-        nombre_cliente = request.POST.get('nombre_cliente', '').strip()
-        tipo_equipo = request.POST.get('tipo_equipo', '').strip() 
-        problema = request.POST.get('problema', '').strip()
-        
-        if nombre_cliente and tipo_equipo and problema:
-            equipo = {
-                'id': len(equipos_recibidos) + 1,
-                'nombre_cliente': nombre_cliente,
-                'tipo_equipo': tipo_equipo,
-                'problema': problema,
-                'estado': 'Recibido'
-            }
-            equipos_recibidos.append(equipo)
-            messages.success(request, f'Equipo de {nombre_cliente} registrado correctamente.')
-            return redirect('/recepcion/listado/')
+    """
+    Registra un equipo en la clínica (Recepción).
+    """
+    redirect_login = _requerir_login(request)
+    if redirect_login:
+        return redirect_login
+
+    if request.method == "POST":
+        nombre = request.POST.get("nombre", "").strip()
+        correo = request.POST.get("correo", "").strip()
+        telefono = request.POST.get("telefono", "").strip()
+
+        tipo = request.POST.get("tipo", "")
+        tipo_otro = request.POST.get("tipo_otro", "").strip()
+        problema = request.POST.get("problema", "")
+        problema_otro = request.POST.get("problema_otro", "").strip()
+
+        # Resolver "Otro" en tipo y problema
+        if tipo == "Otro":
+            tipo_final = tipo_otro
         else:
-            messages.error(request, 'Todos los campos son obligatorios.')
-    
-    return render(request, 'recepcion/registrar.html')
+            tipo_final = tipo
 
-@login_required
-def listado_equipos(request):
-    context = {'equipos': equipos_recibidos}
-    return render(request, 'recepcion/listado.html', context)
+        if problema == "Otro":
+            problema_final = problema_otro
+        else:
+            problema_final = problema
 
-@login_required
-def detalle_equipo(request, nombre):
-    equipo = None
-    for eq in equipos_recibidos:
-        if eq['nombre_cliente'].lower() == nombre.lower():
-            equipo = eq
-            break
-    
-    if not equipo:
-        messages.error(request, 'Equipo no encontrado.')
-        return redirect('/recepcion/listado/')
-    
-    context = {'equipo': equipo}
-    return render(request, 'recepcion/detalle.html', context)
+        if not nombre or not tipo_final or not problema_final:
+            messages.error(
+                request,
+                "Nombre del cliente, tipo de equipo y problema reportado son obligatorios.",
+            )
+        else:
+            Equipo.objects.create(
+                nombre=nombre,
+                correo=correo if correo else None,
+                telefono=telefono if telefono else None,
+                tipo=tipo_final,
+                problema=problema_final,
+            )
+            messages.success(request, "Equipo recepcionado correctamente.")
+            return redirect("listar_equipos")
+
+    return render(request, "recepcion/registrar.html")
+
+
+def listar_equipos(request):
+    """
+    Lista de equipos recepcionados.
+    """
+    redirect_login = _requerir_login(request)
+    if redirect_login:
+        return redirect_login
+
+    equipos = Equipo.objects.all().order_by("-fecha_recepcion")
+    return render(request, "recepcion/listado.html", {"equipos": equipos})
+
+
+def detalle_equipo(request, equipo_id):
+    """
+    Detalle de un equipo recepcionado (si lo estás usando).
+    """
+    redirect_login = _requerir_login(request)
+    if redirect_login:
+        return redirect_login
+
+    equipo = get_object_or_404(Equipo, id=equipo_id)
+    return render(request, "recepcion/detalles.html", {"equipo": equipo})
