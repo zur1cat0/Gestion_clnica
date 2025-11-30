@@ -32,6 +32,17 @@
     <a href="{% url 'listar_equipos' %}" class="btn btn-secondary btn-sm">
       Volver al listado
     </a>
+
+    {# Solo permitir ver botones de edición/eliminación si NO está entregado #}
+    {% if equipo.estado != "E" %}
+      <a href="{% url 'editar_equipo' equipo.id %}" class="btn btn-outline-secondary btn-sm">
+        Editar equipo
+      </a>
+      <a href="{% url 'eliminar_equipo' equipo.id %}" class="btn btn-outline-danger btn-sm">
+        Eliminar equipo
+      </a>
+    {% endif %}
+
     <a href="{% url 'evaluar_equipo' %}" class="btn btn-primary btn-sm">
       Ir a diagnóstico
     </a>

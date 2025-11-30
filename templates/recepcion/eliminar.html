@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Eliminar equipo – Recepción{% endblock %}
+
+{% block content %}
+<h2 class="mb-4 text-danger">Eliminar Equipo Recepcionado</h2>
+
+<div class="card p-4 shadow-sm border-0">
+  <p>
+    ¿Estás segura/o de que deseas eliminar el siguiente equipo de la recepción?
+  </p>
+
+  <dl class="row mb-3">
+    <dt class="col-sm-3">Cliente</dt>
+    <dd class="col-sm-9">{{ equipo.nombre }}</dd>
+
+    <dt class="col-sm-3">Tipo de equipo</dt>
+    <dd class="col-sm-9">{{ equipo.tipo }}</dd>
+
+    <dt class="col-sm-3">Problema reportado</dt>
+    <dd class="col-sm-9">{{ equipo.problema }}</dd>
+
+    <dt class="col-sm-3">Fecha de recepción</dt>
+    <dd class="col-sm-9">{{ equipo.fecha_recepcion }}</dd>
+  </dl>
+
+  <div class="d-flex justify-content-between">
+    <a href="{% url 'listar_equipos' %}" class="btn btn-secondary btn-sm">
+      Cancelar y volver al listado
+    </a>
+
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger btn-sm">
+        Sí, eliminar definitivamente
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

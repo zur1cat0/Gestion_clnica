@@ -4,6 +4,23 @@
 {% block content %}
 <h2 class="mb-4">Listado de Equipos Recepcionados</h2>
 
+{# Mensajes del sistema (errores, avisos, etc.) #}
+{% if messages %}
+  {% for message in messages %}
+    {% if 'error' in message.tags %}
+      {# Estilo especial: fondo blanco con borde rojo #}
+      <div class="mb-3 p-3 rounded border border-danger bg-white text-danger">
+        {{ message }}
+      </div>
+    {% else %}
+      {# Otros mensajes usan los estilos estándar de Bootstrap #}
+      <div class="mb-3 alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}">
+        {{ message }}
+      </div>
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
 <div class="d-flex justify-content-end mb-3">
   <a href="{% url 'registrar_equipo' %}" class="btn btn-primary">
     Registrar nuevo equipo
@@ -26,10 +43,20 @@
           <td>{{ e.nombre }}</td>
           <td>{{ e.tipo }}</td>
           <td>{{ e.problema }}</td>
-          <td>
+          <td class="d-flex flex-wrap gap-1">
             <a href="{% url 'detalle_equipo' e.id %}"
                class="btn btn-sm btn-outline-primary">
               Ver detalle
+            </a>
+
+            <a href="{% url 'editar_equipo' e.id %}"
+               class="btn btn-sm btn-outline-secondary">
+              Editar
+            </a>
+
+            <a href="{% url 'eliminar_equipo' e.id %}"
+               class="btn btn-sm btn-outline-danger">
+              Eliminar
             </a>
           </td>
         </tr>
