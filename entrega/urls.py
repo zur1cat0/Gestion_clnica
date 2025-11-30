@@ -26,6 +26,20 @@ urlpatterns = [
         name="confirmar_entrega",
     ),
 
+    # /entrega/editar/<id>/
+    path(
+        "editar/<int:entrega_id>/",
+        views.editar_entrega,
+        name="editar_entrega",
+    ),
+
+    # /entrega/eliminar/<id>/
+    path(
+        "eliminar/<int:entrega_id>/",
+        views.eliminar_entrega,
+        name="eliminar_entrega",
+    ),
+
     # /entrega/reporte/
     path("reporte/", views.reporte_entregas, name="reporte_entregas"),
 ]
