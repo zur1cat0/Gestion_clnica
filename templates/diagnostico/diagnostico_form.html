@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Editar diagnóstico – Diagnóstico{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+  <div class="w-100" style="max-width: 800px;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="mb-0">Editar diagnóstico</h2>
+      <a href="{% url 'historial_diagnosticos' %}" class="btn btn-outline-secondary btn-sm">
+        Volver al historial
+      </a>
+    </div>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}" role="alert">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="card p-4 shadow-lg border-0 rounded-4">
+      <h5 class="mb-3">Datos del equipo</h5>
+      <dl class="row">
+        <dt class="col-sm-3">Cliente</dt>
+        <dd class="col-sm-9">{{ equipo.nombre }}</dd>
+
+        <dt class="col-sm-3">Equipo</dt>
+        <dd class="col-sm-9">{{ equipo.tipo }}</dd>
+
+        <dt class="col-sm-3">Problema inicial</dt>
+        <dd class="col-sm-9">{{ equipo.problema }}</dd>
+      </dl>
+
+      <hr class="my-3">
+
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label class="form-label">Diagnóstico</label>
+          <textarea name="diagnostico" class="form-control" rows="3">{{ diag.diagnostico }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label d-block">Tipo de solución</label>
+          <div class="btn-group" role="group" aria-label="Tipo de solución">
+            <input type="radio" class="btn-check" name="tipo_solucion" id="tsPreventiva"
+                   value="Preventiva" autocomplete="off"
+                   {% if tipo_solucion == "Preventiva" %}checked{% endif %}>
+            <label class="btn btn-outline-secondary" for="tsPreventiva">Preventiva</label>
+
+            <input type="radio" class="btn-check" name="tipo_solucion" id="tsCorrectiva"
+                   value="Correctiva" autocomplete="off"
+                   {% if tipo_solucion == "Correctiva" %}checked{% endif %}>
+            <label class="btn btn-outline-secondary" for="tsCorrectiva">Correctiva</label>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Detalle de la solución aplicada</label>
+          <textarea name="solucion" class="form-control" rows="3">{{ solucion_detalle }}</textarea>
+        </div>
+
+        <div class="d-flex justify-content-end">
+          <button type="submit" class="btn btn-primary rounded-pill px-4">
+            Guardar cambios
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

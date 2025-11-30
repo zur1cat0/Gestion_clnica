@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Eliminar diagnóstico – Diagnóstico{% endblock %}
+
+{% block content %}
+<h2 class="mb-4 text-danger">Eliminar diagnóstico</h2>
+
+<div class="card p-4 shadow-sm border-0">
+  <p>
+    ¿Estás segura/o de que deseas eliminar el siguiente diagnóstico?
+  </p>
+
+  <dl class="row mb-3">
+    <dt class="col-sm-3">Fecha</dt>
+    <dd class="col-sm-9">{{ diag.fecha_diagnostico }}</dd>
+
+    <dt class="col-sm-3">Cliente</dt>
+    <dd class="col-sm-9">{{ diag.equipo.nombre }}</dd>
+
+    <dt class="col-sm-3">Equipo</dt>
+    <dd class="col-sm-9">{{ diag.equipo.tipo }}</dd>
+
+    <dt class="col-sm-3">Estudiante</dt>
+    <dd class="col-sm-9">{{ diag.estudiante }}</dd>
+
+    <dt class="col-sm-3">Diagnóstico</dt>
+    <dd class="col-sm-9">{{ diag.diagnostico }}</dd>
+
+    <dt class="col-sm-3">Solución</dt>
+    <dd class="col-sm-9">{{ diag.solucion }}</dd>
+  </dl>
+
+  <div class="d-flex justify-content-between">
+    <a href="{% url 'historial_diagnosticos' %}" class="btn btn-secondary btn-sm">
+      Cancelar y volver
+    </a>
+
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger btn-sm">
+        Sí, eliminar definitivamente
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

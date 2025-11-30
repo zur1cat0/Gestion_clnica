@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Historial de diagnósticos – Diagnóstico{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Historial de diagnósticos (CRUD Diagnóstico)</h2>
+
+{% if messages %}
+  {% for message in messages %}
+    {% if 'error' in message.tags %}
+      {# Estilo especial para errores: fondo blanco, borde rojo, texto rojo #}
+      <div class="mb-3 p-3 rounded border border-danger bg-white text-danger">
+        {{ message }}
+      </div>
+    {% else %}
+      {# Otros mensajes con alertas Bootstrap estándar #}
+      <div class="mb-3 alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}">
+        {{ message }}
+      </div>
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
+<div class="d-flex justify-content-end mb-3">
+  <a href="{% url 'listado_diagnosticos' %}" class="btn btn-outline-secondary me-2">
+    Volver al seguimiento por equipo
+  </a>
+  <a href="{% url 'evaluar_equipo' %}" class="btn btn-primary">
+    Registrar nuevo diagnóstico
+  </a>
+</div>
+
+<div class="card shadow-sm border-0">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0 align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Fecha</th>
+          <th>Cliente</th>
+          <th>Equipo</th>
+          <th>Estudiante</th>
+          <th>Diagnóstico</th>
+          <th>Tipo de solución</th>
+          <th class="text-end">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in diagnosticos %}
+        <tr>
+          <td>{{ d.fecha_diagnostico }}</td>
+          <td>{{ d.equipo.nombre }}</td>
+          <td>{{ d.equipo.tipo }}</td>
+          <td>{{ d.estudiante }}</td>
+          <td style="max-width: 260px;">
+            {{ d.diagnostico }}
+          </td>
+          <td>{{ d.tipo_solucion_desde_texto }}</td>
+          <td class="text-end">
+            <a href="{% url 'editar_diagnostico' d.id %}"
+               class="btn btn-sm btn-outline-secondary me-1">
+              Editar
+            </a>
+            <a href="{% url 'eliminar_diagnostico' d.id %}"
+               class="btn btn-sm btn-outline-danger">
+              Eliminar
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center text-muted py-4">
+            No hay diagnósticos registrados.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
