@@ -312,13 +312,3 @@ Cuando termines de trabajar:
        deactivate
 
 ---
-
-## 13. Notas finales
-
-- No se recomienda subir a GitHub:
-  - El archivo `.env`
-  - La base de datos `db.sqlite3` (a menos que sea intencional como ejemplo)
-- Para volver a trabajar otro día:
-  1. `cd Gestion_clnica`
-  2. Activar el entorno `clinica_entorno`
-  3. Ejecutar `python manage.py runserver` (o `python3 manage.py runserver`)
