@@ -92,7 +92,7 @@ def evaluar_equipo(request):
     """
     Registrar el diagnóstico de un equipo.
 
-    - Se muestran las asignaciones ACTIVAS (Asingacion.activo=True).
+    - Se muestran las asignaciones ACTIVAS (Asignacion.activo=True).
     - Se ignoran asignaciones que no tengan estudiante (datos viejos/rotos).
     - El estudiante se toma desde la Asignacion (modelo Estudiante).
     - Se guarda un Diagnostico con el nombre del estudiante en texto.
@@ -207,7 +207,7 @@ def evaluar_equipo(request):
     return render(request, "diagnostico/evaluar.html", context)
 
 
-# ------------------ LISTADO DE DIAGNÓSTICOS ------------------ #
+# ------------------ LISTADO DE DIAGNÓSTICOS POR EQUIPO ------------------ #
 def listado_diagnosticos(request):
     """
     Seguimiento de equipos y diagnósticos.
@@ -240,10 +240,11 @@ def listado_diagnosticos(request):
             .first()
         )
 
-        # Estudiante mostrado en la tabla
+        # Estudiante + texto de diagnóstico a mostrar en la tabla
         if ultimo_diag:
             nombre_estudiante = ultimo_diag.estudiante
             texto_diagnostico = ultimo_diag.diagnostico
+            ultimo_diag_id = ultimo_diag.id
         else:
             # Si no hay diagnóstico, intentamos ver si hay una asignación activa
             asig = (
@@ -256,6 +257,7 @@ def listado_diagnosticos(request):
             else:
                 nombre_estudiante = "No asignado"
             texto_diagnostico = "Sin diagnóstico"
+            ultimo_diag_id = None
 
         # Estado lógico + estilo visual
         if equipo.estado == "R":
@@ -279,6 +281,7 @@ def listado_diagnosticos(request):
                 "problema": equipo.problema,
                 "estudiante": nombre_estudiante,
                 "ultimo_diagnostico": texto_diagnostico,
+                "ultimo_diagnostico_id": ultimo_diag_id,
                 "estado_equipo": estado_logico,
                 "estado_badge": estado_badge,
             }
@@ -288,3 +291,101 @@ def listado_diagnosticos(request):
         "filas": filas,
     }
     return render(request, "diagnostico/listado.html", context)
+
+
+# ------------------ CRUD DE DIAGNÓSTICOS (como tal) ------------------ #
+def historial_diagnosticos(request):
+    """
+    Lista TODOS los diagnósticos registrados (CRUD de Diagnóstico – Read).
+    """
+    redir = _requerir_login(request)
+    if redir:
+        return redir
+
+    diagnosticos = (
+        Diagnostico.objects.select_related("equipo")
+        .order_by("-fecha_diagnostico", "-id")
+    )
+    return render(
+        request,
+        "diagnostico/historial.html",
+        {"diagnosticos": diagnosticos},
+    )
+
+
+def editar_diagnostico(request, diagnostico_id):
+    """
+    Edita un diagnóstico ya registrado (CRUD de Diagnóstico – Update).
+    No permite editar si el equipo ya fue entregado al cliente (estado = 'E').
+    """
+    redir = _requerir_login(request)
+    if redir:
+        return redir
+
+    diag = get_object_or_404(Diagnostico, id=diagnostico_id)
+
+    # ⛔ Bloquear edición si el equipo ya fue entregado
+    if diag.equipo.estado == "E":
+        messages.error(
+            request,
+            "No se puede editar un equipo ya entregado.",
+        )
+        return redirect("historial_diagnosticos")
+
+    if request.method == "POST":
+        diagnostico_txt = request.POST.get("diagnostico", "").strip()
+        tipo_solucion = request.POST.get("tipo_solucion", "").strip()
+        solucion_txt = request.POST.get("solucion", "").strip()
+
+        if not diagnostico_txt or not tipo_solucion or not solucion_txt:
+            messages.error(
+                request,
+                "Diagnóstico, tipo de solución y detalle de solución son obligatorios.",
+            )
+        else:
+            # Reconstruimos el texto solución con prefijo [Tipo]
+            solucion_final = f"[{tipo_solucion}] {solucion_txt}"
+
+            diag.diagnostico = diagnostico_txt
+            diag.tipo_solucion = tipo_solucion
+            diag.solucion = solucion_final
+            diag.save()
+
+            messages.success(request, "Diagnóstico actualizado correctamente.")
+            return redirect("historial_diagnosticos")
+
+    # Para GET, prellenamos usando las propiedades del modelo
+    contexto = {
+        "diag": diag,
+        "equipo": diag.equipo,
+        "tipo_solucion": diag.tipo_solucion_desde_texto,
+        "solucion_detalle": diag.solucion_detalle,
+    }
+    return render(request, "diagnostico/diagnostico_form.html", contexto)
+
+
+def eliminar_diagnostico(request, diagnostico_id):
+    """
+    Elimina un diagnóstico (CRUD de Diagnóstico – Delete).
+    No permite eliminar si el equipo ya fue entregado al cliente (estado = 'E').
+    """
+    redir = _requerir_login(request)
+    if redir:
+        return redir
+
+    diag = get_object_or_404(Diagnostico, id=diagnostico_id)
+
+    # ⛔ Bloquear eliminación si el equipo ya fue entregado
+    if diag.equipo.estado == "E":
+        messages.error(
+            request,
+            "No se puede eliminar un equipo ya entregado.",
+        )
+        return redirect("historial_diagnosticos")
+
+    if request.method == "POST":
+        diag.delete()
+        messages.success(request, "Diagnóstico eliminado correctamente.")
+        return redirect("historial_diagnosticos")
+
+    return render(request, "diagnostico/diagnostico_eliminar.html", {"diag": diag})

@@ -161,3 +161,88 @@ def reporte_entregas(request):
     ).order_by("-fecha_entrega")
 
     return render(request, "entrega/reporte.html", {"entregas": entregas})
+
+
+# ------------------ CRUD extra de Entrega: Editar / Eliminar ------------------ #
+def editar_entrega(request, entrega_id):
+    """
+    Edita los datos de una entrega (monto y observaciones).
+    No permite editar si la entrega ya está marcada como entregada.
+    """
+    redirect_login = _requerir_login(request)
+    if redirect_login:
+        return redirect_login
+
+    entrega = get_object_or_404(
+        Entrega.objects.select_related("diagnostico__equipo"),
+        id=entrega_id,
+    )
+
+    # Bloqueo de negocio: no editar si ya está entregada
+    if entrega.entregado:
+        messages.error(
+            request,
+            "No se puede editar una entrega ya marcada como entregada.",
+        )
+        return redirect("listado_entregas")
+
+    if request.method == "POST":
+        monto_str = request.POST.get("monto", "").strip()
+        observaciones = request.POST.get("observaciones", "").strip()
+
+        if not monto_str:
+            messages.error(request, "El monto es obligatorio.")
+        else:
+            try:
+                monto = float(monto_str)
+            except ValueError:
+                messages.error(request, "El monto debe ser un número válido.")
+            else:
+                entrega.monto = monto
+                entrega.observaciones = observaciones
+                entrega.save()
+
+                messages.success(request, "Entrega actualizada correctamente.")
+                return redirect("listado_entregas")
+
+    context = {
+        "entrega": entrega,
+        "diagnostico": entrega.diagnostico,
+        "equipo": entrega.diagnostico.equipo,
+    }
+    return render(request, "entrega/entrega_form.html", context)
+
+
+def eliminar_entrega(request, entrega_id):
+    """
+    Elimina una entrega.
+    No permite eliminar si la entrega ya está marcada como entregada.
+    """
+    redirect_login = _requerir_login(request)
+    if redirect_login:
+        return redirect_login
+
+    entrega = get_object_or_404(
+        Entrega.objects.select_related("diagnostico__equipo"),
+        id=entrega_id,
+    )
+
+    # Bloqueo de negocio: no eliminar si ya está entregada
+    if entrega.entregado:
+        messages.error(
+            request,
+            "No se puede eliminar una entrega ya marcada como entregada.",
+        )
+        return redirect("listado_entregas")
+
+    if request.method == "POST":
+        entrega.delete()
+        messages.success(request, "Entrega eliminada correctamente.")
+        return redirect("listado_entregas")
+
+    context = {
+        "entrega": entrega,
+        "diagnostico": entrega.diagnostico,
+        "equipo": entrega.diagnostico.equipo,
+    }
+    return render(request, "entrega/entrega_eliminar.html", context)
