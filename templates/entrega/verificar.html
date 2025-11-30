@@ -22,8 +22,11 @@
         <option value="" selected disabled>Selecciona un diagnóstico</option>
         {% for d in diagnosticos_pendientes %}
           <option value="{{ d.id }}">
-            [Diag {{ d.id }}] {{ d.equipo.cliente.nombre }} – {{ d.equipo.get_tipo_display }}
-            ({{ d.get_tipo_solucion_display }}) – Técnico: {{ d.estudiante }}
+            [Diag {{ d.id }}] {{ d.equipo.nombre }} – {{ d.equipo.tipo }}
+            {% if d.tipo_solucion_desde_texto %}
+              ({{ d.tipo_solucion_desde_texto }})
+            {% endif %}
+            – Técnico: {{ d.estudiante }}
           </option>
         {% endfor %}
       </select>

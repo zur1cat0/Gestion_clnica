@@ -16,9 +16,17 @@
 
 {% if messages %}
   {% for message in messages %}
-    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}" role="alert">
-      {{ message }}
-    </div>
+    {% if 'error' in message.tags %}
+      {# Estilo especial: fondo blanco, borde rojo, texto rojo #}
+      <div class="mb-3 p-3 rounded border border-danger bg-white text-danger">
+        {{ message }}
+      </div>
+    {% else %}
+      {# Resto de mensajes con alertas Bootstrap normales #}
+      <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}" role="alert">
+        {{ message }}
+      </div>
+    {% endif %}
   {% endfor %}
 {% endif %}
 
@@ -56,12 +64,23 @@
               {% endif %}
             </td>
             <td>
+              <!-- Siempre disponible: comprobante -->
               <a href="{% url 'comprobante_entrega' e.id %}" class="btn btn-sm btn-outline-info mb-1">
                 Comprobante
               </a>
+
+              <!-- Siempre disponible: editar (aunque la vista bloquea si ya está entregado) -->
+              <a href="{% url 'editar_entrega' e.id %}" class="btn btn-sm btn-outline-secondary mb-1">
+                Editar
+              </a>
+
+              <!-- Solo si NO está entregado: confirmar + eliminar -->
               {% if not e.entregado %}
-                <a href="{% url 'confirmar_entrega' e.id %}" class="btn btn-sm btn-outline-success">
+                <a href="{% url 'confirmar_entrega' e.id %}" class="btn btn-sm btn-outline-success mb-1">
                   Confirmar entrega
+                </a>
+                <a href="{% url 'eliminar_entrega' e.id %}" class="btn btn-sm btn-outline-danger">
+                  Eliminar
                 </a>
               {% endif %}
             </td>

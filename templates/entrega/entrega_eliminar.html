@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Eliminar entrega – Entrega{% endblock %}
+
+{% block content %}
+<h2 class="mb-4 text-danger">Eliminar entrega</h2>
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}" role="alert">
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endif %}
+
+<div class="card p-4 shadow-sm border-0">
+  <p class="mb-3">
+    ¿Estás segura/o de que deseas eliminar esta entrega?
+    Esta acción no se puede deshacer.
+  </p>
+
+  <ul class="mb-3">
+    <li><strong>Cliente:</strong> {{ equipo.nombre }}</li>
+    <li><strong>Equipo:</strong> {{ equipo.tipo }}</li>
+    <li><strong>Diagnóstico:</strong> {{ diagnostico.diagnostico }}</li>
+    <li><strong>Monto:</strong> ${{ entrega.monto|floatformat:0 }}</li>
+  </ul>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="d-flex justify-content-between">
+      <a href="{% url 'listado_entregas' %}" class="btn btn-outline-secondary">
+        Cancelar
+      </a>
+      <button type="submit" class="btn btn-danger">
+        Sí, eliminar entrega
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
