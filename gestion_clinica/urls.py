@@ -19,6 +19,9 @@ urlpatterns = [
     path('login/', include('login.urls')),
     path('recepcion/', include('recepcion.urls')),
     path('diagnostico/', include('diagnostico.urls')),
+    path('hardware/', include('hardware.urls')),
+    path('software/', include('software.urls')),
     path('entrega/', include('entrega.urls')),
+    path('despacho/', include('entrega.urls')),
     path('admin/', admin.site.urls),
 ]

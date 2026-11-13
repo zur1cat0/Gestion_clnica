@@ -24,6 +24,18 @@ class AsignacionAdmin(admin.ModelAdmin):
 
 @admin.register(Diagnostico)
 class DiagnosticoAdmin(admin.ModelAdmin):
-    list_display = ("equipo", "estudiante", "tipo_solucion", "estado", "fecha_diagnostico")
-    search_fields = ("equipo__cliente", "equipo__tipo", "estudiante", "diagnostico", "solucion")
-    list_filter = ("estado", "tipo_solucion", "fecha_diagnostico")
+    list_display = (
+        "equipo",
+        "estudiante",
+        "diagnostico",
+        "siguiente_area",
+        "listo_para_despacho",
+        "fecha_diagnostico",
+    )
+    search_fields = (
+        "equipo__nombre",
+        "equipo__tipo",
+        "estudiante",
+        "diagnostico",
+    )
+    list_filter = ("siguiente_area", "listo_para_despacho", "fecha_diagnostico")

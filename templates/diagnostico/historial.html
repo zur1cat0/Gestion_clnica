@@ -37,9 +37,10 @@
           <th>Fecha</th>
           <th>Cliente</th>
           <th>Equipo</th>
+          <th>Información del equipo</th>
           <th>Estudiante</th>
           <th>Diagnóstico</th>
-          <th>Tipo de solución</th>
+          <th>Siguiente paso</th>
           <th class="text-end">Acciones</th>
         </tr>
       </thead>
@@ -49,11 +50,20 @@
           <td>{{ d.fecha_diagnostico }}</td>
           <td>{{ d.equipo.nombre }}</td>
           <td>{{ d.equipo.tipo }}</td>
+          <td>{{ d.equipo.preguntas_cliente|default:"(sin registrar)"|truncatechars:100 }}</td>
           <td>{{ d.estudiante }}</td>
           <td style="max-width: 260px;">
             {{ d.diagnostico }}
           </td>
-          <td>{{ d.tipo_solucion_desde_texto }}</td>
+          <td>
+            {% if d.listo_para_despacho %}
+              Listo para despacho (bypass)
+            {% elif d.siguiente_area %}
+              {{ d.get_siguiente_area_display }}
+            {% else %}
+              (registro anterior)
+            {% endif %}
+          </td>
           <td class="text-end">
             <a href="{% url 'editar_diagnostico' d.id %}"
                class="btn btn-sm btn-outline-secondary me-1">
@@ -67,7 +77,7 @@
         </tr>
         {% empty %}
         <tr>
-          <td colspan="7" class="text-center text-muted py-4">
+          <td colspan="8" class="text-center text-muted py-4">
             No hay diagnósticos registrados.
           </td>
         </tr>

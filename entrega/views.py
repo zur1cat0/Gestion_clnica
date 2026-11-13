@@ -13,7 +13,7 @@ def _requerir_login(request):
 
 def entrega_home(request):
     """
-    /entrega/ → siempre lleva al listado de entregas.
+    /despacho/ → listado principal de despachos.
     """
     redirect_login = _requerir_login(request)
     if redirect_login:
@@ -32,6 +32,9 @@ def listado_entregas(request):
     entregas = Entrega.objects.select_related(
         "diagnostico",
         "diagnostico__equipo",
+    ).prefetch_related(
+        "diagnostico__equipo__intervenciones_hardware",
+        "diagnostico__equipo__intervenciones_software",
     ).order_by("-fecha_entrega")
 
     return render(request, "entrega/listado.html", {"entregas": entregas})
@@ -41,7 +44,7 @@ def verificar_entrega(request):
     """
     Pantalla para GENERAR una nueva entrega usando TU template verificar.html.
 
-    - GET: muestra diagnósticos sin entrega + formulario de monto/observaciones.
+    - GET: muestra diagnósticos sin despacho y el formulario de observaciones.
     - POST: crea la Entrega y redirige al comprobante.
     """
     redirect_login = _requerir_login(request)
@@ -49,43 +52,45 @@ def verificar_entrega(request):
         return redirect_login
 
     # Diagnósticos que aún NO tienen entrega asociada
-    diagnosticos_pendientes = Diagnostico.objects.filter(
-        entrega__isnull=True
-    ).select_related("equipo")
+    diagnosticos_pendientes = (
+        Diagnostico.objects.filter(
+            equipo__estado="L",
+            entrega__isnull=True,
+        )
+        .select_related("equipo")
+        .prefetch_related(
+            "equipo__intervenciones_hardware",
+            "equipo__intervenciones_software",
+        )
+    )
 
     if request.method == "POST":
         diag_id = request.POST.get("diagnostico_id", "").strip()
-        monto_str = request.POST.get("monto", "").strip()
         observaciones = request.POST.get("observaciones", "").strip()
 
-        if not diag_id or not monto_str:
-            messages.error(
-                request,
-                "Debes seleccionar un diagnóstico y escribir el monto.",
-            )
+        if not diag_id:
+            messages.error(request, "Debes seleccionar un equipo listo para despacho.")
         else:
-            try:
-                monto = float(monto_str)
-            except ValueError:
-                messages.error(request, "El monto debe ser un número válido.")
-            else:
-                diagnostico = get_object_or_404(Diagnostico, id=diag_id)
+            diagnostico = get_object_or_404(
+                Diagnostico,
+                id=diag_id,
+                equipo__estado="L",
+            )
 
-                # Evitamos duplicar entregas para el mismo diagnóstico
-                if hasattr(diagnostico, "entrega"):
-                    messages.warning(
-                        request,
-                        "Ese diagnóstico ya tiene una entrega registrada.",
-                    )
-                else:
-                    entrega = Entrega.objects.create(
-                        diagnostico=diagnostico,
-                        monto=monto,
-                        observaciones=observaciones,
-                        entregado=False,
-                    )
-                    messages.success(request, "Entrega registrada correctamente.")
-                    return redirect("comprobante_entrega", entrega_id=entrega.id)
+            # Evitamos duplicar entregas para el mismo diagnóstico
+            if hasattr(diagnostico, "entrega"):
+                messages.warning(
+                    request,
+                    "Ese diagnóstico ya tiene un despacho registrado.",
+                )
+            else:
+                entrega = Entrega.objects.create(
+                    diagnostico=diagnostico,
+                    observaciones=observaciones,
+                    entregado=False,
+                )
+                messages.success(request, "Despacho registrado correctamente.")
+                return redirect("comprobante_entrega", entrega_id=entrega.id)
 
     context = {
         "diagnosticos_pendientes": diagnosticos_pendientes,
@@ -105,6 +110,9 @@ def comprobante_entrega(request, entrega_id):
         Entrega.objects.select_related(
             "diagnostico",
             "diagnostico__equipo",
+        ).prefetch_related(
+            "diagnostico__equipo__intervenciones_hardware",
+            "diagnostico__equipo__intervenciones_software",
         ),
         id=entrega_id,
     )
@@ -126,23 +134,23 @@ def confirmar_entrega(request, entrega_id):
         return redirect_login
 
     entrega = get_object_or_404(
-        Entrega.objects.select_related("diagnostico__equipo"), id=entrega_id
+        Entrega.objects.select_related("diagnostico__equipo").prefetch_related(
+            "diagnostico__equipo__intervenciones_hardware",
+            "diagnostico__equipo__intervenciones_software",
+        ),
+        id=entrega_id,
     )
     entrega.entregado = True
     entrega.save()
 
     equipo = entrega.diagnostico.equipo
     # Si tu modelo Equipo tiene estados, aquí lo marcamos como 'Entregado'
-    try:
-        equipo.estado = "E"
-        equipo.save()
-    except Exception:
-        # Si no tiene campo estado, simplemente lo ignoramos
-        pass
+    equipo.estado = "E"
+    equipo.save(update_fields=["estado"])
 
     messages.success(
         request,
-        f"La entrega para {equipo.nombre} ha sido marcada como COMPLETADA.",
+        f"El despacho para {equipo.nombre} ha sido marcado como COMPLETADO.",
     )
     return redirect("listado_entregas")
 
@@ -158,6 +166,9 @@ def reporte_entregas(request):
     entregas = Entrega.objects.select_related(
         "diagnostico",
         "diagnostico__equipo",
+    ).prefetch_related(
+        "diagnostico__equipo__intervenciones_hardware",
+        "diagnostico__equipo__intervenciones_software",
     ).order_by("-fecha_entrega")
 
     return render(request, "entrega/reporte.html", {"entregas": entregas})
@@ -166,7 +177,7 @@ def reporte_entregas(request):
 # ------------------ CRUD extra de Entrega: Editar / Eliminar ------------------ #
 def editar_entrega(request, entrega_id):
     """
-    Edita los datos de una entrega (monto y observaciones).
+    Edita las observaciones del despacho.
     No permite editar si la entrega ya está marcada como entregada.
     """
     redirect_login = _requerir_login(request)
@@ -187,23 +198,11 @@ def editar_entrega(request, entrega_id):
         return redirect("listado_entregas")
 
     if request.method == "POST":
-        monto_str = request.POST.get("monto", "").strip()
         observaciones = request.POST.get("observaciones", "").strip()
-
-        if not monto_str:
-            messages.error(request, "El monto es obligatorio.")
-        else:
-            try:
-                monto = float(monto_str)
-            except ValueError:
-                messages.error(request, "El monto debe ser un número válido.")
-            else:
-                entrega.monto = monto
-                entrega.observaciones = observaciones
-                entrega.save()
-
-                messages.success(request, "Entrega actualizada correctamente.")
-                return redirect("listado_entregas")
+        entrega.observaciones = observaciones
+        entrega.save(update_fields=["observaciones"])
+        messages.success(request, "Despacho actualizado correctamente.")
+        return redirect("listado_entregas")
 
     context = {
         "entrega": entrega,
@@ -237,7 +236,7 @@ def eliminar_entrega(request, entrega_id):
 
     if request.method == "POST":
         entrega.delete()
-        messages.success(request, "Entrega eliminada correctamente.")
+        messages.success(request, "Despacho eliminado correctamente.")
         return redirect("listado_entregas")
 
     context = {

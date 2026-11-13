@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
-{% block title %}Registrar entrega – Entrega{% endblock %}
+{% block title %}Registrar despacho – Despacho{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">Registrar entrega de equipo</h2>
+<h2 class="mb-4">Registrar despacho de equipo</h2>
 
 {% if messages %}
   {% for message in messages %}
@@ -17,24 +17,19 @@
     {% csrf_token %}
 
     <div class="mb-3">
-      <label class="form-label">Diagnóstico pendiente</label>
+      <label class="form-label">Equipo listo para despacho</label>
       <select name="diagnostico_id" class="form-select">
-        <option value="" selected disabled>Selecciona un diagnóstico</option>
+        <option value="" selected disabled>Selecciona un equipo listo para despacho</option>
         {% for d in diagnosticos_pendientes %}
           <option value="{{ d.id }}">
             [Diag {{ d.id }}] {{ d.equipo.nombre }} – {{ d.equipo.tipo }}
-            {% if d.tipo_solucion_desde_texto %}
-              ({{ d.tipo_solucion_desde_texto }})
-            {% endif %}
             – Técnico: {{ d.estudiante }}
+            {% if d.equipo.preguntas_cliente %}
+              — Información del equipo: {{ d.equipo.preguntas_cliente|truncatechars:80 }}
+            {% endif %}
           </option>
         {% endfor %}
       </select>
-    </div>
-
-    <div class="mb-3">
-      <label class="form-label">Monto a cobrar ($)</label>
-      <input type="number" name="monto" class="form-control" min="0" step="1000" placeholder="Ej: 25000">
     </div>
 
     <div class="mb-3">
@@ -43,7 +38,7 @@
                 placeholder="Observaciones para el cliente (opcional)"></textarea>
     </div>
 
-    <button type="submit" class="btn btn-success">Registrar entrega</button>
+    <button type="submit" class="btn btn-success">Registrar despacho</button>
   </form>
 </div>
 {% endblock %}

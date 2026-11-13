@@ -28,11 +28,13 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
     'login',
+    'django.contrib.staticfiles',
     'recepcion',
     'diagnostico',
     'entrega',
+    'hardware',
+    'software',
 ]
 
 MIDDLEWARE = [
@@ -67,17 +69,29 @@ WSGI_APPLICATION = 'gestion_clinica.wsgi.application'
 
 
 # Database
-# Usamos PostgreSQL con los datos del .env
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '5432'),
+DB_ENGINE = os.getenv('DB_ENGINE', 'postgresql')
+DB_MAINTENANCE_DB = os.getenv('DB_MAINTENANCE_DB', 'postgres')
+
+if DB_ENGINE == 'sqlite':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+elif DB_ENGINE == 'postgresql':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME', 'clinica_db'),
+            'USER': os.getenv('DB_USER', 'postgres'),
+            'PASSWORD': os.getenv('DB_PASSWORD'),
+            'HOST': os.getenv('DB_HOST', 'localhost'),
+            'PORT': os.getenv('DB_PORT', '5432'),
+        }
+    }
+else:
+    raise ValueError("DB_ENGINE must be 'sqlite' or 'postgresql'")
 
 
 # Password validation

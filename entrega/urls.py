@@ -9,7 +9,7 @@ urlpatterns = [
     path("listado/", views.listado_entregas, name="listado_entregas"),
 
     # /entrega/verificar/
-    # Aquí se selecciona el diagnóstico pendiente + monto y se CREA la entrega
+    # Aquí se selecciona el diagnóstico pendiente y se registra el despacho
     path("verificar/", views.verificar_entrega, name="verificar_entrega"),
 
     # /entrega/comprobante/<id>/

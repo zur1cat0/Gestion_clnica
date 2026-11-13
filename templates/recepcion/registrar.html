@@ -21,6 +21,18 @@
         </div>
       {% endfor %}
     {% endif %}
+    {% if form.errors %}
+      <div class="alert alert-danger" role="alert">
+        {% for field in form %}
+          {% for error in field.errors %}
+            <div>{{ field.label }}: {{ error }}</div>
+          {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+          <div>{{ error }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
 
     <div class="card p-4 shadow-lg border-0 rounded-4">
       <form method="post">
@@ -35,7 +47,8 @@
             type="text"
             name="nombre"
             class="form-control"
-            value="{% if equipo %}{{ equipo.nombre }}{% endif %}"
+            value="{{ form.nombre.value|default_if_none:'' }}"
+            required
           >
         </div>
 
@@ -47,7 +60,7 @@
               name="correo"
               class="form-control"
               placeholder="Opcional"
-              value="{% if equipo %}{{ equipo.correo }}{% endif %}"
+              value="{{ form.correo.value|default_if_none:'' }}"
             >
           </div>
           <div class="col-md-6 mb-3">
@@ -57,7 +70,7 @@
               name="telefono"
               class="form-control"
               placeholder="Opcional"
-              value="{% if equipo %}{{ equipo.telefono }}{% endif %}"
+              value="{{ form.telefono.value|default_if_none:'' }}"
             >
           </div>
         </div>
@@ -69,42 +82,47 @@
 
         <div class="mb-3">
           <label class="form-label">Tipo de dispositivo</label>
-          <select name="tipo" class="form-select" id="tipoSelect">
-            <option value="" selected disabled>Selecciona un tipo</option>
-            <option value="Notebook" {% if equipo and equipo.tipo == "Notebook" %}selected{% endif %}>Notebook</option>
-            <option value="Computador de Escritorio" {% if equipo and equipo.tipo == "Computador de Escritorio" %}selected{% endif %}>Computador de Escritorio</option>
-            <option value="Celular" {% if equipo and equipo.tipo == "Celular" %}selected{% endif %}>Celular</option>
-            <option value="Tablet" {% if equipo and equipo.tipo == "Tablet" %}selected{% endif %}>Tablet</option>
-            <option value="Consola de videojuegos" {% if equipo and equipo.tipo == "Consola de videojuegos" %}selected{% endif %}>Consola de videojuegos</option>
-            <option value="Otro">Otro</option>
+          <select name="tipo" class="form-select" id="tipoSelect" required>
+            <option value="" {% if not form.tipo.value %}selected{% endif %} disabled>Selecciona un tipo</option>
+            {% if form.tipo.value and form.tipo.value != "Notebook" and form.tipo.value != "PC de escritorio" %}
+              <option value="{{ form.tipo.value }}" selected disabled>
+                {{ form.tipo.value }} (tipo anterior; selecciona uno de los permitidos)
+              </option>
+            {% endif %}
+            <option value="PC de escritorio" {% if form.tipo.value == "PC de escritorio" %}selected{% endif %}>PC de escritorio</option>
+            <option value="Notebook" {% if form.tipo.value == "Notebook" %}selected{% endif %}>Notebook</option>
           </select>
-          <input
-            type="text"
-            name="tipo_otro"
-            id="tipoOtro"
-            class="form-control mt-2 d-none"
-            placeholder="Especificar tipo"
-          >
         </div>
 
         <div class="mb-3">
           <label class="form-label">Problema reportado</label>
-          <select name="problema" class="form-select" id="problemaSelect">
-            <option value="" selected disabled>Selecciona un problema</option>
-            <option value="No enciende" {% if equipo and equipo.problema == "No enciende" %}selected{% endif %}>No enciende</option>
-            <option value="Pantalla rota" {% if equipo and equipo.problema == "Pantalla rota" %}selected{% endif %}>Pantalla rota</option>
-            <option value="Batería dañada" {% if equipo and equipo.problema == "Batería dañada" %}selected{% endif %}>Batería dañada</option>
-            <option value="Sobrecalentamiento" {% if equipo and equipo.problema == "Sobrecalentamiento" %}selected{% endif %}>Sobrecalentamiento</option>
-            <option value="Daño por agua" {% if equipo and equipo.problema == "Daño por agua" %}selected{% endif %}>Daño por agua</option>
-            <option value="Otro">Otro</option>
+          <select name="problema" class="form-select" id="problemaSelect" required>
+            <option value="" {% if not form.problema.value %}selected{% endif %} disabled>Selecciona un problema</option>
+            <option value="No enciende" {% if form.problema.value == "No enciende" %}selected{% endif %}>No enciende</option>
+            <option value="Pantalla rota" {% if form.problema.value == "Pantalla rota" %}selected{% endif %}>Pantalla rota</option>
+            <option value="Batería dañada" {% if form.problema.value == "Batería dañada" %}selected{% endif %}>Batería dañada</option>
+            <option value="Sobrecalentamiento" {% if form.problema.value == "Sobrecalentamiento" %}selected{% endif %}>Sobrecalentamiento</option>
+            <option value="Daño por agua" {% if form.problema.value == "Daño por agua" %}selected{% endif %}>Daño por agua</option>
+            <option value="Otro" {% if form.problema.value and form.problema.value not in problemas_predefinidos %}selected{% endif %}>Otro</option>
           </select>
           <textarea
             name="problema_otro"
             id="problemaOtro"
             rows="3"
-            class="form-control mt-2 d-none"
+            class="form-control mt-2 {% if not form.problema.value or form.problema.value in problemas_predefinidos %}d-none{% endif %}"
             placeholder="Describe el problema..."
-          ></textarea>
+          >{% if form.problema.value and form.problema.value not in problemas_predefinidos %}{{ form.problema.value }}{% endif %}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label for="preguntasCliente" class="form-label">Información del equipo</label>
+          <textarea
+            name="preguntas_cliente"
+            id="preguntasCliente"
+            rows="4"
+            class="form-control"
+            placeholder="Anota las preguntas realizadas y las respuestas del cliente (opcional)"
+          >{{ form.preguntas_cliente.value|default_if_none:'' }}</textarea>
         </div>
 
         <div class="d-flex justify-content-end">
@@ -118,14 +136,6 @@
 </div>
 
 <script>
-  const tipoSelect = document.getElementById('tipoSelect');
-  const tipoOtro = document.getElementById('tipoOtro');
-  if (tipoSelect && tipoOtro) {
-    tipoSelect.addEventListener('change', function () {
-      tipoOtro.classList.toggle('d-none', this.value !== 'Otro');
-    });
-  }
-
   const problemaSelect = document.getElementById('problemaSelect');
   const problemaOtro = document.getElementById('problemaOtro');
   if (problemaSelect && problemaOtro) {

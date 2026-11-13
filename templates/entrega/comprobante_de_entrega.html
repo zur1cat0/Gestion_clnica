@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Comprobante de entrega – Entrega{% endblock %}
+{% block title %}Comprobante de despacho – Despacho{% endblock %}
 
 {% block content %}
 <div class="card shadow-sm border-0 mb-4">
@@ -10,7 +10,7 @@
       <div>
         <h4 class="mb-1">Clínica de PCs</h4>
         <small class="text-muted">
-          Comprobante N° {{ entrega.id }}
+          Comprobante de despacho N° {{ entrega.id }}
         </small>
       </div>
 
@@ -20,9 +20,9 @@
           {{ entrega.fecha_entrega|date:"d/m/Y H:i" }}
         </div>
         <div>
-          <strong>Estado:</strong>
+          <strong>Estado del despacho:</strong>
           {% if entrega.entregado %}
-            <span class="badge bg-success">Entregado</span>
+            <span class="badge bg-success">Despachado</span>
           {% else %}
             <span class="badge bg-warning text-dark">Pendiente</span>
           {% endif %}
@@ -80,11 +80,19 @@
           No registrado
         {% endif %}
       </p>
+      <p class="mb-3">
+        <strong>Información del equipo:</strong><br>
+        {% if equipo_obj and equipo_obj.preguntas_cliente %}
+          {{ equipo_obj.preguntas_cliente|linebreaksbr }}
+        {% else %}
+          Sin registrar.
+        {% endif %}
+      </p>
 
     {% endwith %}
 
-    <!-- DIAGNÓSTICO Y SOLUCIÓN -->
-    <h5 class="mt-3 mb-2">Diagnóstico y solución</h5>
+    <!-- DIAGNÓSTICO INICIAL -->
+    <h5 class="mt-3 mb-2">Diagnóstico inicial</h5>
     <p class="mb-1">
       <strong>Técnico:</strong>
       {{ entrega.diagnostico.estudiante }}
@@ -93,17 +101,25 @@
       <strong>Diagnóstico:</strong>
       {{ entrega.diagnostico.diagnostico }}
     </p>
-    <p class="mb-3">
-      <strong>Solución:</strong>
-      {{ entrega.diagnostico.solucion }}
-    </p>
+    <p class="mb-3">{{ entrega.diagnostico.diagnostico }}</p>
 
-    <!-- DETALLE DE COBRO -->
-    <h5 class="mt-3 mb-2">Detalle de cobro</h5>
-    <p class="mb-3">
-      <strong>Monto total:</strong>
-      ${{ entrega.monto|floatformat:0 }}
-    </p>
+    <h5 class="mt-3 mb-2">Diagnósticos y soluciones de Hardware</h5>
+    {% for item in equipo.intervenciones_hardware.all %}
+      <p class="mb-1"><strong>Técnico:</strong> {{ item.tecnico }} — {{ item.fecha_intervencion|date:"d/m/Y H:i" }}</p>
+      <p class="mb-1"><strong>Diagnóstico:</strong> {{ item.diagnostico }}</p>
+      <p class="mb-3"><strong>Solución:</strong> {{ item.solucion }}</p>
+    {% empty %}
+      <p class="mb-3">Sin intervención de Hardware.</p>
+    {% endfor %}
+
+    <h5 class="mt-3 mb-2">Diagnósticos y soluciones de Software</h5>
+    {% for item in equipo.intervenciones_software.all %}
+      <p class="mb-1"><strong>Técnico:</strong> {{ item.tecnico }} — {{ item.fecha_intervencion|date:"d/m/Y H:i" }}</p>
+      <p class="mb-1"><strong>Diagnóstico:</strong> {{ item.diagnostico }}</p>
+      <p class="mb-3"><strong>Solución:</strong> {{ item.solucion }}</p>
+    {% empty %}
+      <p class="mb-3">Sin intervención de Software.</p>
+    {% endfor %}
 
     <!-- OBSERVACIONES -->
     <h5 class="mt-3 mb-2">Observaciones</h5>
@@ -120,12 +136,12 @@
 
 <div class="d-flex justify-content-between">
   <a href="{% url 'listado_entregas' %}" class="btn btn-outline-secondary">
-    Volver al listado de entregas
+    Volver al listado de despachos
   </a>
 
   {% if not entrega.entregado %}
     <a href="{% url 'confirmar_entrega' entrega.id %}" class="btn btn-success">
-      Marcar como entregado
+      Confirmar despacho
     </a>
   {% endif %}
 </div>

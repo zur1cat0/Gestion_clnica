@@ -19,14 +19,15 @@
     <dt class="col-sm-3">Equipo</dt>
     <dd class="col-sm-9">{{ diag.equipo.tipo }}</dd>
 
+    <dt class="col-sm-3">Información del equipo</dt>
+    <dd class="col-sm-9">{{ diag.equipo.preguntas_cliente|default:"(sin registrar)"|linebreaksbr }}</dd>
+
     <dt class="col-sm-3">Estudiante</dt>
     <dd class="col-sm-9">{{ diag.estudiante }}</dd>
 
     <dt class="col-sm-3">Diagnóstico</dt>
     <dd class="col-sm-9">{{ diag.diagnostico }}</dd>
 
-    <dt class="col-sm-3">Solución</dt>
-    <dd class="col-sm-9">{{ diag.solucion }}</dd>
   </dl>
 
   <div class="d-flex justify-content-between">

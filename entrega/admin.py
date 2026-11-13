@@ -6,7 +6,6 @@ from .models import Entrega
 class EntregaAdmin(admin.ModelAdmin):
     list_display = (
         "diagnostico",
-        "monto",
         "entregado",
         "fecha_entrega",
     )

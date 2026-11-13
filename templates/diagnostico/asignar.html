@@ -46,6 +46,7 @@
         {% for e in equipos %}
           <option value="{{ e.id }}">
             {{ e.nombre }} – {{ e.tipo }} ({{ e.problema }})
+            {% if e.preguntas_cliente %} — Información del equipo: {{ e.preguntas_cliente|truncatechars:80 }}{% endif %}
           </option>
         {% endfor %}
       </select>

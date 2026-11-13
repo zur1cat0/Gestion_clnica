@@ -1,11 +1,11 @@
 # Gestión Clínica de PCs 🖥️💉
 
-Aplicación web en **Django** para gestionar la recepción, diagnóstico y entrega de equipos de cómputo en una “clínica de PCs”.
+Aplicación web en **Django** para gestionar la recepción, diagnóstico, soporte técnico y despacho de equipos de cómputo en una “clínica de PCs”.
 
 Incluye módulos de:
 - **Recepción** de equipos
 - **Diagnóstico** por parte de estudiantes/técnicos
-- **Entrega** y comprobante al cliente
+- **Despacho** y comprobante al cliente
 
 ---
 
@@ -14,8 +14,9 @@ Incluye módulos de:
 Antes de comenzar, asegúrate de tener instalado:
 
 - Git
-- Python 3.x (recomendado 3.11+)
+- Python 3.13 (necesario para instalar todas las dependencias incluidas)
 - `pip` (se instala normalmente junto con Python)
+- PostgreSQL (requerido por defecto; SQLite está disponible como alternativa)
 
 Opcional pero recomendado:
 - Un editor de código (VS Code, PyCharm, etc.)
@@ -39,7 +40,7 @@ A partir de aquí, **todos los comandos** se ejecutan dentro de la carpeta `Gest
 
 En la terminal (CMD o PowerShell), dentro de la carpeta del proyecto:
 
-    python -m venv clinica_entorno
+    py -3.13 -m venv clinica_entorno
 
 ### Linux / macOS
 
@@ -49,7 +50,7 @@ Esto creará una carpeta llamada `clinica_entorno` con el entorno aislado de Pyt
 
 ---
 
-## 4. Activar el entorno virtual
+## 4. Activar el entorno virtual (opcional)
 
 ### Windows (CMD)
 
@@ -63,7 +64,9 @@ Esto creará una carpeta llamada `clinica_entorno` con el entorno aislado de Pyt
 
     source clinica_entorno/bin/activate
 
-Si todo está bien, en la consola deberías ver algo como:
+En Windows también puedes ejecutar los comandos directamente con
+`clinica_entorno\Scripts\python.exe`, sin activar el entorno. Si lo activas,
+deberías ver algo como:
 
     (clinica_entorno) C:\ruta\Gestion_clnica>
 
@@ -73,58 +76,63 @@ Si todo está bien, en la consola deberías ver algo como:
 
 Con el entorno virtual **activado**, ejecuta:
 
-    pip install -r requirements.txt
+    clinica_entorno\Scripts\python.exe -m pip install -r requirements.txt
 
 Esto instalará Django y las demás librerías que el proyecto necesita.
 
 ---
 
-## 6. Configurar el archivo `.env`
+## 6. Configurar la base de datos
 
-En el repositorio puede venir un archivo de ejemplo, por ejemplo: `.env.example`.
-
-1. Copia ese archivo a `.env`:
-
-   ### Windows
-
-        copy .env.example .env
-
-   ### Linux / macOS
-
-        cp .env.example .env
-
-2. Si lo deseas, puedes abrir `.env` en tu editor y ajustar valores como:
-   - `DEBUG`
-   - `SECRET_KEY`
-   - Otros parámetros de configuración
-
-Para un entorno local de pruebas normalmente basta con dejar los valores por defecto.
-
----
-
-## 7. Aplicar migraciones de la base de datos
-
-Con el entorno virtual activado y estando en la carpeta del proyecto:
+Por defecto, el proyecto usa PostgreSQL en `localhost:5432` con la base
+`clinica_db` y el usuario `postgres`. Copia `.env.example` a `.env` y configura
+`DB_PASSWORD` con la contraseña real de PostgreSQL:
 
 ### Windows
 
-    python manage.py migrate
+        copy .env.example .env
+
+### Linux / macOS
+
+        cp .env.example .env
+
+Si tu base o usuario tienen otro nombre, configura también `DB_NAME` o
+`DB_USER`. Para seleccionar SQLite explícitamente, establece `DB_ENGINE=sqlite`
+en `.env`.
+
+El usuario de PostgreSQL necesita permiso para crear bases de datos. En el
+primer inicio, `runserver` crea `DB_NAME` si no existe y aplica las migraciones
+automáticamente. También puedes ejecutar `migrate` directamente para preparar
+la base antes de iniciar el servidor.
+
+---
+
+## 7. Preparar la base de datos
+
+No necesitas crear la base de datos manualmente. El primer inicio del servidor
+la crea si falta y aplica las migraciones. Si quieres prepararla antes:
+
+### Windows
+
+    clinica_entorno\Scripts\python.exe manage.py migrate
 
 ### Linux / macOS
 
     python3 manage.py migrate
 
-Esto creará/actualizará las tablas necesarias en la base de datos (por defecto, SQLite).
+Este comando crea la base PostgreSQL si falta y aplica las migraciones.
 
 ---
 
 ## 8. Crear el superusuario de Django
 
-Este usuario se utilizará para acceder al **admin de Django**.
+El servidor debe haberse iniciado al menos una vez para crear la base de datos
+y aplicar las migraciones. Este usuario se utilizará para acceder al **admin de
+Django**.
 
 ### Windows
 
-    python manage.py createsuperuser
+    clinica_entorno\Scripts\python.exe manage.py createsuperuser
 
 ### Linux / macOS
 
@@ -144,7 +152,7 @@ Con el entorno activado:
 
 ### Windows
 
-    python manage.py runserver
+    clinica_entorno\Scripts\python.exe manage.py runserver
 
 ### Linux / macOS
 
@@ -199,7 +207,9 @@ Una vez que el servidor está en marcha (`runserver`):
 4. Al autenticarse correctamente, el menú mostrará las secciones:
    - **Recepción**
    - **Diagnóstico**
-   - **Entrega**
+   - **Hardware**
+   - **Software**
+   - **Despacho**
    - **Salir**
 
 > Nota: El login de la aplicación usa un sistema propio (basado en sesión), diferente del panel `/admin/`.  
@@ -214,17 +224,21 @@ Una vez que el servidor está en marcha (`runserver`):
 Permite:
 
 - Registrar los datos del cliente (nombre, correo, teléfono).
-- Registrar los datos del equipo (tipo, problema reportado, opción “Otro” con campo libre).
+- Registrar el dispositivo como **PC de escritorio** o **Notebook**.
+- Registrar el problema reportado (con opción “Otro” para describirlo) y las
+  preguntas realizadas al cliente, con sus respuestas.
 
 Tras guardar, el equipo aparecerá en:
 
 - **Recepción** → “Listado de equipos”
+- La información de las preguntas también estará disponible en diagnóstico y
+  en los comprobantes e informes de despacho.
 
 Desde el detalle de un equipo se puede:
 
 - Ver toda la información de la recepción.
 - Acceder al flujo de diagnóstico.
-- Editar o eliminar solo si el equipo **no ha sido entregado** (según las reglas del sistema).
+- Editar o eliminar solo si el equipo **no ha sido despachado** (según las reglas del sistema).
 
 ---
 
@@ -246,56 +260,74 @@ El equipo pasará a estado **“En diagnóstico”**.
 
 - Ir a: **Diagnóstico** → “Evaluar equipo”
 - Seleccionar la asignación (estudiante + equipo).
-- Completar:
-  - Diagnóstico.
-  - Tipo de solución (Preventiva / Correctiva).
-  - Detalle de la solución aplicada.
+- Registrar el diagnóstico inicial y elegir si el equipo sigue a **Hardware**
+  o **Software**.
+- Si el diagnóstico concluye que ya está listo, marcar **“Listo para despacho”**
+  para omitir ambas etapas.
 - Guardar.
 
 El sistema:
 
 - Crea el diagnóstico.
-- Marca el equipo como **“Listo para entrega”**.
-- Desactiva la asignación.
+- Envía el equipo al área elegida o lo deja listo para despacho cuando se usa
+  el bypass.
+- Desactiva la asignación del diagnóstico inicial.
 
 #### c) Historial de diagnósticos
 
 - Ir a: **Diagnóstico** → **“Historial completo de diagnósticos”**.
 - Desde allí se pueden ver todos los diagnósticos y, según las reglas del sistema:
-  - Editar o eliminar diagnósticos **cuando el equipo aún no ha sido entregado al cliente**.
+  - Editar o eliminar diagnósticos **cuando el equipo aún no ha sido despachado al cliente**.
 
 ---
 
-### 11.4. Módulo Entrega
+### 11.4. Módulo Hardware
 
-En la barra de navegación, entra a **Entrega**.
+- Menú: **Hardware**.
+- Registra el diagnóstico físico y la solución aplicada.
+- Después de cada intervención se puede enviar el equipo a **Software** o
+  dejarlo **listo para despacho**.
 
-#### a) Registrar una nueva entrega
+### 11.5. Módulo Software
 
-- Ir a: **Entrega** → “Registrar nueva entrega”.
-- Seleccionar un diagnóstico pendiente de entrega.
+- Menú: **Software**.
+- Registra el diagnóstico de software y la solución aplicada.
+- Después de cada intervención se puede enviar el equipo a **Hardware** o
+  dejarlo **listo para despacho**.
+- El historial conserva cada intervención, por lo que un equipo puede pasar
+  de un área a la otra según lo que se encuentre.
+
+### 11.6. Módulo Despacho
+
+En la barra de navegación, entra a **Despacho**. Solo aparecen equipos
+marcados como listos después del diagnóstico, Hardware o Software.
+
+#### a) Registrar un nuevo despacho
+
+- Ir a: **Despacho** → “Registrar nuevo despacho”.
+- Seleccionar un equipo listo para despacho.
 - Ingresar:
-  - Monto a cobrar.
   - Observaciones (opcional).
 - Guardar.
 
-Se genera un registro de entrega asociado al diagnóstico.
+Se genera el comprobante de despacho con el diagnóstico inicial y todas las
+intervenciones y soluciones de Hardware y Software.
 
-#### b) Ver listado de entregas
+#### b) Ver listado de despachos
 
-- Ir a: **Entrega** → “Listado de entregas”.
+- Ir a: **Despacho** → “Listado de despachos”.
 - Desde allí se puede:
-  - Ver el estado de cada entrega (Pendiente / Entregado).
-  - Acceder al **comprobante de entrega**.
-  - Confirmar la entrega al cliente (cuando aún está pendiente).
-  - Eliminar o editar entregas, con las restricciones correspondientes.
+  - Ver el estado de cada despacho (Pendiente / Despachado).
+  - Acceder al **comprobante de despacho**.
+  - Confirmar el despacho al cliente (cuando aún está pendiente).
+  - Eliminar o editar despachos, con las restricciones correspondientes.
 
-#### c) Confirmar entrega
+#### c) Confirmar despacho
 
-- Desde el listado o el comprobante, pulsar **“Marcar como entregado / Confirmar entrega”**.
+- Desde el listado o el comprobante, pulsar **“Confirmar despacho”**.
 - El sistema:
-  - Marca la entrega como completada.
-  - Cambia el estado del equipo a **“Entregado”**.
+  - Marca el despacho como completado.
+  - Cambia el estado del equipo a **“Despachado”**.
 
 ---
 

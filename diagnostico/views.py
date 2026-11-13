@@ -96,7 +96,8 @@ def evaluar_equipo(request):
     - Se ignoran asignaciones que no tengan estudiante (datos viejos/rotos).
     - El estudiante se toma desde la Asignacion (modelo Estudiante).
     - Se guarda un Diagnostico con el nombre del estudiante en texto.
-    - El equipo pasa a estado 'L' (Listo para entrega) y la asignación se marca inactiva.
+    - El equipo pasa a Hardware, Software o directamente a despacho.
+    - La asignación se marca inactiva.
     """
     redir = _requerir_login(request)
     if redir:
@@ -163,36 +164,50 @@ def evaluar_equipo(request):
 
     if request.method == "POST":
         diagnostico_txt = request.POST.get("diagnostico", "").strip()
-        solucion_txt = request.POST.get("solucion", "").strip()
-        tipo_solucion = request.POST.get("tipo_solucion", "").strip()  # Preventiva / Correctiva
+        listo_para_despacho = request.POST.get("listo_para_despacho") == "on"
+        siguiente_area = request.POST.get("siguiente_area", "").strip()
 
-        if not diagnostico_txt or not solucion_txt or not tipo_solucion:
+        if not diagnostico_txt:
             messages.error(
                 request,
-                "Diagnóstico, solución y tipo de solución son obligatorios.",
+                "El diagnóstico es obligatorio.",
+            )
+        elif not listo_para_despacho and siguiente_area not in {"hardware", "software"}:
+            messages.error(
+                request,
+                "Selecciona Hardware o Software, o marca listo para despacho.",
             )
         else:
-            # Armamos el texto final de solución
-            solucion_final = f"[{tipo_solucion}] {solucion_txt}"
-
-            # Creamos el diagnóstico, guardando el nombre del estudiante en texto
             Diagnostico.objects.create(
                 equipo=equipo_asignado,
                 estudiante=estudiante_asignado.nombre,
                 diagnostico=diagnostico_txt,
-                solucion=solucion_final,
-                tipo_solucion=tipo_solucion,
+                siguiente_area="" if listo_para_despacho else siguiente_area,
+                listo_para_despacho=listo_para_despacho,
             )
 
-            # Equipo pasa a "Listo para entrega"
-            equipo_asignado.estado = "L"
+            if listo_para_despacho:
+                equipo_asignado.estado = "L"
+            else:
+                equipo_asignado.estado = {
+                    "hardware": "H",
+                    "software": "S",
+                }[siguiente_area]
             equipo_asignado.save()
 
-            # Desactivamos la asignación ya diagnosticada
             asignacion_actual.activo = False
             asignacion_actual.save()
 
-            messages.success(request, "Diagnóstico registrado correctamente.")
+            if listo_para_despacho:
+                messages.success(
+                    request,
+                    "Diagnóstico registrado. El equipo quedó listo para despacho.",
+                )
+            else:
+                messages.success(
+                    request,
+                    f"Diagnóstico registrado. El equipo pasó a {siguiente_area.title()}.",
+                )
             return redirect("listado_diagnosticos")
 
     # Nombre ya formateado para el input de solo lectura
@@ -212,7 +227,7 @@ def listado_diagnosticos(request):
     """
     Seguimiento de equipos y diagnósticos.
 
-    - Muestra todos los equipos que NO han sido entregados (estado != 'E').
+    - Muestra todos los equipos que NO han sido despachados (estado != 'E').
     - Un equipo aparece solo una vez.
     - Estudiante:
         * Si tiene diagnóstico: el estudiante del último diagnóstico.
@@ -220,16 +235,17 @@ def listado_diagnosticos(request):
         * Si no tiene nada: 'No asignado'.
     - Último diagnóstico:
         * Texto del último diagnóstico o 'Sin diagnóstico'.
-    - Estado visual:
-        * R -> Pendiente (rojo)
-        * D -> Asignado (amarillo)
-        * L -> Para entrega (verde)
+    - Estado visual muestra la etapa activa de cada equipo.
     """
     redir = _requerir_login(request)
     if redir:
         return redir
 
-    equipos = Equipo.objects.exclude(estado="E").order_by("fecha_recepcion", "id")
+    equipos = (
+        Equipo.objects.exclude(estado="E")
+        .prefetch_related("intervenciones_hardware", "intervenciones_software")
+        .order_by("fecha_recepcion", "id")
+    )
     filas = []
 
     for equipo in equipos:
@@ -266,8 +282,14 @@ def listado_diagnosticos(request):
         elif equipo.estado == "D":
             estado_logico = "Asignado"
             estado_badge = "badge bg-warning text-dark"
+        elif equipo.estado == "H":
+            estado_logico = "Pendiente en Hardware"
+            estado_badge = "badge bg-info text-dark"
+        elif equipo.estado == "S":
+            estado_logico = "Pendiente en Software"
+            estado_badge = "badge bg-primary"
         elif equipo.estado == "L":
-            estado_logico = "Para entrega"
+            estado_logico = "Listo para despacho"
             estado_badge = "badge bg-success"
         else:
             estado_logico = "Sin información"
@@ -316,7 +338,7 @@ def historial_diagnosticos(request):
 def editar_diagnostico(request, diagnostico_id):
     """
     Edita un diagnóstico ya registrado (CRUD de Diagnóstico – Update).
-    No permite editar si el equipo ya fue entregado al cliente (estado = 'E').
+    No permite editar si el equipo ya fue despachado (estado = 'E').
     """
     redir = _requerir_login(request)
     if redir:
@@ -324,42 +346,32 @@ def editar_diagnostico(request, diagnostico_id):
 
     diag = get_object_or_404(Diagnostico, id=diagnostico_id)
 
-    # ⛔ Bloquear edición si el equipo ya fue entregado
+    # Bloquear edición si el equipo ya fue despachado.
     if diag.equipo.estado == "E":
         messages.error(
             request,
-            "No se puede editar un equipo ya entregado.",
+            "No se puede editar un equipo ya despachado.",
         )
         return redirect("historial_diagnosticos")
 
     if request.method == "POST":
         diagnostico_txt = request.POST.get("diagnostico", "").strip()
-        tipo_solucion = request.POST.get("tipo_solucion", "").strip()
-        solucion_txt = request.POST.get("solucion", "").strip()
 
-        if not diagnostico_txt or not tipo_solucion or not solucion_txt:
+        if not diagnostico_txt:
             messages.error(
                 request,
-                "Diagnóstico, tipo de solución y detalle de solución son obligatorios.",
+                "El diagnóstico es obligatorio.",
             )
         else:
-            # Reconstruimos el texto solución con prefijo [Tipo]
-            solucion_final = f"[{tipo_solucion}] {solucion_txt}"
-
             diag.diagnostico = diagnostico_txt
-            diag.tipo_solucion = tipo_solucion
-            diag.solucion = solucion_final
             diag.save()
 
             messages.success(request, "Diagnóstico actualizado correctamente.")
             return redirect("historial_diagnosticos")
 
-    # Para GET, prellenamos usando las propiedades del modelo
     contexto = {
         "diag": diag,
         "equipo": diag.equipo,
-        "tipo_solucion": diag.tipo_solucion_desde_texto,
-        "solucion_detalle": diag.solucion_detalle,
     }
     return render(request, "diagnostico/diagnostico_form.html", contexto)
 
@@ -367,7 +379,7 @@ def editar_diagnostico(request, diagnostico_id):
 def eliminar_diagnostico(request, diagnostico_id):
     """
     Elimina un diagnóstico (CRUD de Diagnóstico – Delete).
-    No permite eliminar si el equipo ya fue entregado al cliente (estado = 'E').
+    No permite eliminar si el equipo ya fue despachado (estado = 'E').
     """
     redir = _requerir_login(request)
     if redir:
@@ -375,11 +387,11 @@ def eliminar_diagnostico(request, diagnostico_id):
 
     diag = get_object_or_404(Diagnostico, id=diagnostico_id)
 
-    # ⛔ Bloquear eliminación si el equipo ya fue entregado
+    # Bloquear eliminación si el equipo ya fue despachado.
     if diag.equipo.estado == "E":
         messages.error(
             request,
-            "No se puede eliminar un equipo ya entregado.",
+            "No se puede eliminar un equipo ya despachado.",
         )
         return redirect("historial_diagnosticos")
 

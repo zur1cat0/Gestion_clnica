@@ -1,0 +1,5 @@
+.env
+clinica_entorno/
+__pycache__/
+*.py[cod]
+*.sqlite3-journal

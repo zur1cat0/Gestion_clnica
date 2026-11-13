@@ -34,6 +34,7 @@
         <th>Cliente</th>
         <th>Equipo</th>
         <th>Problema</th>
+        <th>Información del equipo</th>
         <th>Acciones</th>
       </tr>
     </thead>
@@ -43,6 +44,7 @@
           <td>{{ e.nombre }}</td>
           <td>{{ e.tipo }}</td>
           <td>{{ e.problema }}</td>
+          <td>{{ e.preguntas_cliente|default:"(sin registrar)"|truncatechars:100 }}</td>
           <td class="d-flex flex-wrap gap-1">
             <a href="{% url 'detalle_equipo' e.id %}"
                class="btn btn-sm btn-outline-primary">

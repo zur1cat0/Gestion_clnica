@@ -58,6 +58,11 @@ class Asignacion(models.Model):
 
 
 class Diagnostico(models.Model):
+    AREAS_SOPORTE = [
+        ("hardware", "Hardware"),
+        ("software", "Software"),
+    ]
+
     ESTADOS = [
         ("E", "En diagnóstico"),
         ("F", "Finalizado"),
@@ -72,14 +77,29 @@ class Diagnostico(models.Model):
     # Se guarda el nombre del técnico en texto, para mantener historial
     estudiante = models.CharField("Estudiante / Técnico", max_length=100)
     diagnostico = models.TextField("Diagnóstico")
-    # Aquí se guarda algo como "[Preventiva] Cambio de pantalla (Servicios: ...)"
-    solucion = models.TextField("Solución aplicada")
-    # Campo explícito para el tipo de solución (Preventiva / Correctiva)
+    # Kept for historical diagnoses; new solutions are recorded in Hardware or Software.
+    solucion = models.TextField(
+        "Solución aplicada (histórica)",
+        blank=True,
+        default="",
+        editable=False,
+    )
     tipo_solucion = models.CharField(
-        "Tipo de solución",
+        "Tipo de solución (histórico)",
         max_length=20,
         blank=True,
         null=True,
+        editable=False,
+    )
+    siguiente_area = models.CharField(
+        "Área siguiente",
+        max_length=10,
+        choices=AREAS_SOPORTE,
+        blank=True,
+    )
+    listo_para_despacho = models.BooleanField(
+        "Listo para despacho sin pasar por Hardware o Software",
+        default=False,
     )
     estado = models.CharField(
         "Estado del diagnóstico",
@@ -91,48 +111,6 @@ class Diagnostico(models.Model):
         "Fecha diagnóstico",
         auto_now_add=True,
     )
-
-    @property
-    def tipo_solucion_desde_texto(self):
-        """
-        Si por alguna razón el campo tipo_solucion no viene,
-        intenta extraer 'Preventiva' o 'Correctiva' desde self.solucion
-        cuando viene así: "[Preventiva] resto..."
-        """
-        if self.tipo_solucion:
-            return self.tipo_solucion
-
-        if not self.solucion:
-            return ""
-
-        texto = self.solucion.strip()
-        if not texto.startswith("["):
-            return ""
-
-        cierre = texto.find("]")
-        if cierre <= 1:
-            return ""
-
-        return texto[1:cierre].strip()
-
-    @property
-    def solucion_detalle(self):
-        """
-        Devuelve la solución SIN el prefijo entre corchetes.
-        Ej: "[Preventiva] Cambio de pantalla" -> "Cambio de pantalla"
-        """
-        if not self.solucion:
-            return ""
-
-        texto = self.solucion.strip()
-        if not texto.startswith("["):
-            return texto
-
-        cierre = texto.find("]")
-        if cierre == -1:
-            return texto
-
-        return texto[cierre + 1 :].strip()
 
     def __str__(self):
         return f"Diag de {self.equipo} por {self.estudiante}"

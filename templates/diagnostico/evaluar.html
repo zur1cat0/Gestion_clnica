@@ -49,6 +49,12 @@
           <strong>{{ equipo_asignado.nombre }}</strong> – {{ equipo_asignado.tipo }}<br>
           <small class="text-muted">
             Problema: {{ equipo_asignado.problema }}<br>
+            Información del equipo:
+            {% if equipo_asignado.preguntas_cliente %}
+              {{ equipo_asignado.preguntas_cliente|linebreaksbr }}
+            {% else %}
+              (sin registrar)
+            {% endif %}<br>
             Estado actual: {{ equipo_asignado.get_estado_display }}
           </small>
         </div>
@@ -56,25 +62,28 @@
 
       <div class="mb-3">
         <label class="form-label">Diagnóstico</label>
-        <textarea name="diagnostico" class="form-control" rows="3"></textarea>
-      </div>
-
-      <!-- Tipo de solución: Preventiva / Correctiva -->
-      <div class="mb-3">
-        <label class="form-label d-block">Tipo de solución</label>
-
-        <div class="btn-group" role="group" aria-label="Tipo de solución">
-          <input type="radio" class="btn-check" name="tipo_solucion" id="tsPreventiva" value="Preventiva" autocomplete="off">
-          <label class="btn btn-outline-secondary" for="tsPreventiva">Preventiva</label>
-
-          <input type="radio" class="btn-check" name="tipo_solucion" id="tsCorrectiva" value="Correctiva" autocomplete="off">
-          <label class="btn btn-outline-secondary" for="tsCorrectiva">Correctiva</label>
-        </div>
+        <textarea name="diagnostico" class="form-control" rows="3" required></textarea>
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Detalle de la solución aplicada</label>
-        <textarea name="solucion" class="form-control" rows="3"></textarea>
+        <label for="siguienteArea" class="form-label">Enviar a</label>
+        <select name="siguiente_area" id="siguienteArea" class="form-select" required>
+          <option value="" selected disabled>Selecciona el área de trabajo</option>
+          <option value="hardware">Hardware</option>
+          <option value="software">Software</option>
+        </select>
+      </div>
+
+      <div class="form-check mb-3">
+        <input
+          type="checkbox"
+          name="listo_para_despacho"
+          id="listoParaDespacho"
+          class="form-check-input"
+        >
+        <label for="listoParaDespacho" class="form-check-label">
+          El diagnóstico es suficiente: listo para despacho, omitir Hardware y Software
+        </label>
       </div>
 
       <div class="d-flex justify-content-end">
@@ -95,4 +104,17 @@
   {% endif %}
 
 </div>
+<script>
+  const listoParaDespacho = document.getElementById('listoParaDespacho');
+  const siguienteArea = document.getElementById('siguienteArea');
+  if (listoParaDespacho && siguienteArea) {
+    listoParaDespacho.addEventListener('change', function () {
+      siguienteArea.disabled = this.checked;
+      siguienteArea.required = !this.checked;
+      if (this.checked) {
+        siguienteArea.value = '';
+      }
+    });
+  }
+</script>
 {% endblock %}

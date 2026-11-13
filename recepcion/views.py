@@ -5,6 +5,22 @@ from .models import Equipo
 from .forms import EquipoForm
 
 
+PROBLEMAS_PREDEFINIDOS = [
+    "No enciende",
+    "Pantalla rota",
+    "Batería dañada",
+    "Sobrecalentamiento",
+    "Daño por agua",
+]
+
+
+def _formulario_equipo(request, instance=None):
+    data = request.POST.copy() if request.method == "POST" else None
+    if data and data.get("problema") == "Otro":
+        data["problema"] = data.get("problema_otro", "").strip()
+    return EquipoForm(data=data, instance=instance)
+
+
 def _requerir_login(request):
     if not request.session.get("autenticado"):
         return redirect("login")
@@ -20,57 +36,23 @@ def registrar_equipo(request):
     if redirect_login:
         return redirect_login
 
-    # Formulario vacío por defecto (para solicitudes GET)
-    form = EquipoForm()
-
+    form = _formulario_equipo(request)
     if request.method == "POST":
-        nombre = request.POST.get("nombre", "").strip()
-        correo = request.POST.get("correo", "").strip()
-        telefono = request.POST.get("telefono", "").strip()
-
-        tipo = request.POST.get("tipo", "")
-        tipo_otro = request.POST.get("tipo_otro", "").strip()
-        problema = request.POST.get("problema", "")
-        problema_otro = request.POST.get("problema_otro", "").strip()
-
-        # Resolver "Otro" en tipo y problema (igual que antes)
-        if tipo == "Otro":
-            tipo_final = tipo_otro
-        else:
-            tipo_final = tipo
-
-        if problema == "Otro":
-            problema_final = problema_otro
-        else:
-            problema_final = problema
-
-        if not nombre or not tipo_final or not problema_final:
-            messages.error(
-                request,
-                "Nombre del cliente, tipo de equipo y problema reportado son obligatorios.",
-            )
-        else:
-            # Usamos EquipoForm para validar y guardar
-            data = {
-                "nombre": nombre,
-                "correo": correo if correo else None,
-                "telefono": telefono if telefono else None,
-                "tipo": tipo_final,
-                "problema": problema_final,
-            }
-            form = EquipoForm(data=data)
-            if form.is_valid():
-                form.save()
-                messages.success(request, "Equipo recepcionado correctamente.")
-                return redirect("listar_equipos")
-            else:
-                messages.error(
-                    request,
-                    "Hay errores en el formulario. Por favor revisa los datos ingresados.",
-                )
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Equipo recepcionado correctamente.")
+            return redirect("listar_equipos")
+        messages.error(
+            request,
+            "Hay errores en el formulario. Por favor revisa los datos ingresados.",
+        )
 
     # Para GET o si hubo errores, renderizamos el formulario
-    return render(request, "recepcion/registrar.html", {"form": form})
+    return render(
+        request,
+        "recepcion/registrar.html",
+        {"form": form, "problemas_predefinidos": PROBLEMAS_PREDEFINIDOS},
+    )
 
 
 def listar_equipos(request):
@@ -102,7 +84,7 @@ def editar_equipo(request, equipo_id):
     Edita los datos de un equipo recepcionado (Update del CRUD).
     Usa EquipoForm (ModelForm) para validar los datos.
 
-    ⚠ No permite editar si el equipo ya fue ENTREGADO (estado = 'E').
+    No permite editar si el equipo ya fue despachado.
     """
     redirect_login = _requerir_login(request)
     if redirect_login:
@@ -110,64 +92,34 @@ def editar_equipo(request, equipo_id):
 
     equipo = get_object_or_404(Equipo, id=equipo_id)
 
-    # ⛔ Bloquear edición si el equipo ya fue entregado
+    # Bloquear edición si el equipo ya fue despachado.
     if equipo.estado == "E":
         messages.error(
             request,
-            "No se puede editar un equipo ya entregado.",
+            "No se puede editar un equipo ya despachado.",
         )
         return redirect("listar_equipos")
 
-    # Form inicial con los datos actuales (para GET)
-    form = EquipoForm(instance=equipo)
-
+    form = _formulario_equipo(request, instance=equipo)
     if request.method == "POST":
-        nombre = request.POST.get("nombre", "").strip()
-        correo = request.POST.get("correo", "").strip()
-        telefono = request.POST.get("telefono", "").strip()
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Equipo actualizado correctamente.")
+            return redirect("listar_equipos")
+        messages.error(
+            request,
+            "Hay errores en el formulario. Por favor revisa los datos ingresados.",
+        )
 
-        tipo = request.POST.get("tipo", "")
-        tipo_otro = request.POST.get("tipo_otro", "").strip()
-        problema = request.POST.get("problema", "")
-        problema_otro = request.POST.get("problema_otro", "").strip()
-
-        # Resolver "Otro" en tipo y problema (igual que antes)
-        if tipo == "Otro":
-            tipo_final = tipo_otro
-        else:
-            tipo_final = tipo
-
-        if problema == "Otro":
-            problema_final = problema_otro
-        else:
-            problema_final = problema
-
-        if not nombre or not tipo_final or not problema_final:
-            messages.error(
-                request,
-                "Nombre del cliente, tipo de equipo y problema reportado son obligatorios.",
-            )
-        else:
-            # Usamos EquipoForm con instancia para actualizar
-            data = {
-                "nombre": nombre,
-                "correo": correo if correo else None,
-                "telefono": telefono if telefono else None,
-                "tipo": tipo_final,
-                "problema": problema_final,
-            }
-            form = EquipoForm(data=data, instance=equipo)
-            if form.is_valid():
-                form.save()
-                messages.success(request, "Equipo actualizado correctamente.")
-                return redirect("listar_equipos")
-            else:
-                messages.error(
-                    request,
-                    "Hay errores en el formulario. Por favor revisa los datos ingresados.",
-                )
-
-    return render(request, "recepcion/registrar.html", {"equipo": equipo, "form": form})
+    return render(
+        request,
+        "recepcion/registrar.html",
+        {
+            "equipo": equipo,
+            "form": form,
+            "problemas_predefinidos": PROBLEMAS_PREDEFINIDOS,
+        },
+    )
 
 
 def eliminar_equipo(request, equipo_id):
@@ -175,7 +127,7 @@ def eliminar_equipo(request, equipo_id):
     Elimina un equipo recepcionado (Delete del CRUD).
     Muestra una página de confirmación y, si se confirma, elimina el registro.
 
-    ⚠ No permite eliminar si el equipo ya fue ENTREGADO (estado = 'E').
+    No permite eliminar si el equipo ya fue despachado.
     """
     redirect_login = _requerir_login(request)
     if redirect_login:
@@ -183,11 +135,11 @@ def eliminar_equipo(request, equipo_id):
 
     equipo = get_object_or_404(Equipo, id=equipo_id)
 
-    # ⛔ Bloquear eliminación si el equipo ya fue entregado
+    # Bloquear eliminación si el equipo ya fue despachado.
     if equipo.estado == "E":
         messages.error(
             request,
-            "No se puede eliminar un equipo ya entregado.",
+            "No se puede eliminar un equipo ya despachado.",
         )
         return redirect("listar_equipos")
 

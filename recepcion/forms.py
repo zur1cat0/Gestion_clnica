@@ -11,4 +11,11 @@ class EquipoForm(forms.ModelForm):
 
     class Meta:
         model = Equipo
-        fields = ["nombre", "correo", "telefono", "tipo", "problema"]
+        fields = [
+            "nombre",
+            "correo",
+            "telefono",
+            "tipo",
+            "problema",
+            "preguntas_cliente",
+        ]

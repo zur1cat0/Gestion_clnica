@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Hardware – Diagnóstico técnico{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Diagnóstico y reparación de Hardware</h2>
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}" role="alert">
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endif %}
+
+{% if equipos %}
+  {% for equipo in equipos %}
+    <section class="card shadow-sm border-0 mb-4">
+      <div class="card-header bg-white">
+        <h5 class="mb-1">{{ equipo.nombre }} — {{ equipo.tipo }}</h5>
+        <span class="text-muted">Problema informado: {{ equipo.problema }}</span>
+        {% if equipo.preguntas_cliente %}
+          <div class="mt-2"><strong>Información del equipo:</strong><br>{{ equipo.preguntas_cliente|linebreaksbr }}</div>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        {% if equipo.intervenciones_hardware.all %}
+          <h6>Intervenciones anteriores de Hardware</h6>
+          <ul>
+            {% for item in equipo.intervenciones_hardware.all %}
+              <li>{{ item.fecha_intervencion|date:"d/m/Y H:i" }} — {{ item.tecnico }}: {{ item.diagnostico }}. Solución: {{ item.solucion }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="equipo" value="{{ equipo.id }}">
+          <div class="mb-3">
+            <label class="form-label">Técnico</label>
+            <input name="tecnico" class="form-control" maxlength="100" required
+                   value="{% if form and equipo_error_id == equipo.id %}{{ form.tecnico.value|default_if_none:'' }}{% endif %}">
+            {% if form and equipo_error_id == equipo.id %}{{ form.tecnico.errors }}{% endif %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Diagnóstico de Hardware</label>
+            <textarea name="diagnostico" class="form-control" rows="3" required>{% if form and equipo_error_id == equipo.id %}{{ form.diagnostico.value|default_if_none:'' }}{% endif %}</textarea>
+            {% if form and equipo_error_id == equipo.id %}{{ form.diagnostico.errors }}{% endif %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Solución aplicada</label>
+            <textarea name="solucion" class="form-control" rows="3" required>{% if form and equipo_error_id == equipo.id %}{{ form.solucion.value|default_if_none:'' }}{% endif %}</textarea>
+            {% if form and equipo_error_id == equipo.id %}{{ form.solucion.errors }}{% endif %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Siguiente paso</label>
+            <select name="siguiente_paso" class="form-select" required>
+              <option value="S">Continuar en Software</option>
+              <option value="L">Listo para despacho</option>
+            </select>
+            {% if form and equipo_error_id == equipo.id %}{{ form.siguiente_paso.errors }}{% endif %}
+          </div>
+          <button type="submit" class="btn btn-primary">Guardar intervención de Hardware</button>
+        </form>
+      </div>
+    </section>
+  {% endfor %}
+{% else %}
+  <div class="alert alert-info">No hay equipos pendientes en Hardware.</div>
+{% endif %}
+{% endblock %}

@@ -15,6 +15,15 @@
     <dt class="col-sm-3">Problema reportado</dt>
     <dd class="col-sm-9">{{ equipo.problema }}</dd>
 
+    <dt class="col-sm-3">Información del equipo</dt>
+    <dd class="col-sm-9">
+      {% if equipo.preguntas_cliente %}
+        {{ equipo.preguntas_cliente|linebreaksbr }}
+      {% else %}
+        (sin registrar)
+      {% endif %}
+    </dd>
+
     <dt class="col-sm-3">Teléfono</dt>
     <dd class="col-sm-9">{{ equipo.telefono|default:"(no registrado)" }}</dd>
 
@@ -33,7 +42,7 @@
       Volver al listado
     </a>
 
-    {# Solo permitir ver botones de edición/eliminación si NO está entregado #}
+    {# Solo permitir ver botones de edición/eliminación si NO está despachado #}
     {% if equipo.estado != "E" %}
       <a href="{% url 'editar_equipo' equipo.id %}" class="btn btn-outline-secondary btn-sm">
         Editar equipo

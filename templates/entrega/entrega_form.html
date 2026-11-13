@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
-{% block title %}Editar entrega – Entrega{% endblock %}
+{% block title %}Editar despacho – Despacho{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">Editar entrega</h2>
+<h2 class="mb-4">Editar despacho</h2>
 
 {% if messages %}
   {% for message in messages %}
@@ -29,6 +29,14 @@
       {{ equipo.problema }}
     </p>
     <p class="mb-1">
+      <strong>Información del equipo:</strong>
+      {% if equipo.preguntas_cliente %}
+        {{ equipo.preguntas_cliente|linebreaksbr }}
+      {% else %}
+        (sin registrar)
+      {% endif %}
+    </p>
+    <p class="mb-1">
       <strong>Técnico:</strong>
       {{ diagnostico.estudiante }}
     </p>
@@ -45,24 +53,12 @@
     {% csrf_token %}
 
     <div class="mb-3">
-      <label class="form-label">Monto a cobrar ($)</label>
-      <input
-        type="number"
-        name="monto"
-        class="form-control"
-        min="0"
-        step="1000"
-        value="{{ entrega.monto|floatformat:0 }}"
-      >
-    </div>
-
-    <div class="mb-3">
       <label class="form-label">Observaciones</label>
       <textarea
         name="observaciones"
         class="form-control"
         rows="3"
-        placeholder="Observaciones para el cliente (opcional)"
+        placeholder="        Observaciones para el despacho (opcional)"
       >{{ entrega.observaciones }}</textarea>
     </div>
 

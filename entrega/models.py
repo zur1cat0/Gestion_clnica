@@ -9,15 +9,13 @@ class Entrega(models.Model):
         related_name="entrega",
         verbose_name="Diagnóstico asociado",
     )
-    monto = models.DecimalField(
-        "Monto a cobrar",
-        max_digits=10,
-        decimal_places=2,
-        default=0,  # evita dramas
-    )
-    entregado = models.BooleanField("¿Entregado al cliente?", default=False)
-    observaciones = models.TextField("Observaciones al entregar", blank=True)
-    fecha_entrega = models.DateTimeField("Fecha de entrega", auto_now_add=True)
+    entregado = models.BooleanField("¿Despachado al cliente?", default=False)
+    observaciones = models.TextField("Observaciones de despacho", blank=True)
+    fecha_entrega = models.DateTimeField("Fecha de despacho", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Despacho"
+        verbose_name_plural = "Despachos"
 
     def __str__(self):
-        return f"Entrega {self.diagnostico.equipo.nombre} (${self.monto})"
+        return f"Despacho {self.diagnostico.equipo.nombre}"

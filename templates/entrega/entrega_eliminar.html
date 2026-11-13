@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
-{% block title %}Eliminar entrega – Entrega{% endblock %}
+{% block title %}Eliminar despacho – Despacho{% endblock %}
 
 {% block content %}
-<h2 class="mb-4 text-danger">Eliminar entrega</h2>
+<h2 class="mb-4 text-danger">Eliminar despacho</h2>
 
 {% if messages %}
   {% for message in messages %}
@@ -14,15 +14,15 @@
 
 <div class="card p-4 shadow-sm border-0">
   <p class="mb-3">
-    ¿Estás segura/o de que deseas eliminar esta entrega?
+    ¿Estás segura/o de que deseas eliminar este despacho?
     Esta acción no se puede deshacer.
   </p>
 
   <ul class="mb-3">
     <li><strong>Cliente:</strong> {{ equipo.nombre }}</li>
     <li><strong>Equipo:</strong> {{ equipo.tipo }}</li>
+    <li><strong>Información del equipo:</strong> {{ equipo.preguntas_cliente|default:"(sin registrar)"|linebreaksbr }}</li>
     <li><strong>Diagnóstico:</strong> {{ diagnostico.diagnostico }}</li>
-    <li><strong>Monto:</strong> ${{ entrega.monto|floatformat:0 }}</li>
   </ul>
 
   <form method="post">
@@ -32,7 +32,7 @@
         Cancelar
       </a>
       <button type="submit" class="btn btn-danger">
-        Sí, eliminar entrega
+        Sí, eliminar despacho
       </button>
     </div>
   </form>
